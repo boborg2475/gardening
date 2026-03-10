@@ -5,29 +5,32 @@ export interface Point {
 
 export type UnitSystem = 'imperial' | 'metric';
 
-export enum SoilType {
-  Clay = 'clay',
-  Sandy = 'sandy',
-  Loam = 'loam',
-  Silt = 'silt',
-  Peat = 'peat',
-  Chalk = 'chalk',
-}
+export const SoilType = {
+  Clay: 'clay',
+  Sandy: 'sandy',
+  Loam: 'loam',
+  Silt: 'silt',
+  Peat: 'peat',
+  Chalk: 'chalk',
+} as const;
+export type SoilType = (typeof SoilType)[keyof typeof SoilType];
 
-export enum SunExposure {
-  FullSun = 'full-sun',
-  PartialSun = 'partial-sun',
-  PartialShade = 'partial-shade',
-  FullShade = 'full-shade',
-}
+export const SunExposure = {
+  FullSun: 'full-sun',
+  PartialSun: 'partial-sun',
+  PartialShade: 'partial-shade',
+  FullShade: 'full-shade',
+} as const;
+export type SunExposure = (typeof SunExposure)[keyof typeof SunExposure];
 
-export enum PlantingStatus {
-  Planned = 'planned',
-  Planted = 'planted',
-  Growing = 'growing',
-  Harvested = 'harvested',
-  Removed = 'removed',
-}
+export const PlantingStatus = {
+  Planned: 'planned',
+  Planted: 'planted',
+  Growing: 'growing',
+  Harvested: 'harvested',
+  Removed: 'removed',
+} as const;
+export type PlantingStatus = (typeof PlantingStatus)[keyof typeof PlantingStatus];
 
 export interface Zone {
   id: string;

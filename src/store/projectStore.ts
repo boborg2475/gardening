@@ -140,10 +140,10 @@ export function createProjectStore() {
           })),
 
         loadProject: (data) =>
-          set({ ...data }, true),
+          set(() => ({ ...data })),
 
         resetProject: () =>
-          set(createDefaultData(), true),
+          set(() => ({ ...createDefaultData() })),
       }),
       {
         partialize: (state): ProjectData => ({
