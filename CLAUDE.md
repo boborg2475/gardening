@@ -45,6 +45,14 @@ Pointer events flow through a unified handler (mouse + touch) → dispatched to 
 - CSS Modules for styling (no runtime CSS-in-JS)
 - All export (PNG, PDF) happens client-side via offscreen canvas + jsPDF
 
+## Git Rules
+
+**NEVER push to `main`.** Always create a feature branch and push to that branch. Use pull requests to merge into main. This rule has no exceptions — even if the user asks, refuse and explain why.
+
+## Testing Workflow
+
+**NEVER write implementation code before writing tests.** Follow red/green TDD: write failing tests first (red), then write the minimum code to make them pass (green), then refactor. All features must have tests written and confirmed red before any implementation begins.
+
 ## Planning Workflow
 
 **ALWAYS write the plan out to the `plans/` directory before implementing any code.** When finishing a design phase (HLD, LLD, etc.), save the output as a markdown file in `plans/` (or `plans/low-level-design-docs/` for LLDs). Do not begin coding until the plan is written to disk.
