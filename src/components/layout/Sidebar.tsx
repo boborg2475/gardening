@@ -4,12 +4,18 @@ import type { UIState } from '../../store/uiStore';
 import type { PanelType } from '../../types/ui';
 import styles from './Sidebar.module.css';
 
-const panels: { key: PanelType; label: string }[] = [
-  { key: 'project', label: 'Project' },
-  { key: 'zones', label: 'Zones' },
-  { key: 'features', label: 'Features' },
-  { key: 'plantings', label: 'Plantings' },
-  { key: 'layers', label: 'Layers' },
+interface PanelDef {
+  key: PanelType;
+  label: string;
+  icon: string;
+}
+
+const panels: PanelDef[] = [
+  { key: 'project', label: 'Project', icon: '📋' },
+  { key: 'zones', label: 'Zones', icon: '🌿' },
+  { key: 'features', label: 'Features', icon: '🌳' },
+  { key: 'plantings', label: 'Plantings', icon: '🌱' },
+  { key: 'layers', label: 'Layers', icon: '◫' },
 ];
 
 interface SidebarProps {
@@ -26,7 +32,31 @@ export function Sidebar({ uiStore }: SidebarProps) {
     () => uiStore.getState().activePanel,
   );
 
-  if (!sidebarOpen) return null;
+  if (!sidebarOpen) {
+    return (
+      <aside className={styles.sidebarCollapsed} data-testid="sidebar">
+        <button
+          className={styles.expandBtn}
+          onClick={() => uiStore.getState().toggleSidebar()}
+          title="Expand sidebar"
+        >
+          ▸
+        </button>
+        <nav className={styles.iconTabs}>
+          {panels.map(({ key, label, icon }) => (
+            <button
+              key={key}
+              className={`${styles.iconTab} ${activePanel === key ? styles.activeIconTab : ''}`}
+              title={label}
+              onClick={() => uiStore.getState().setActivePanel(key)}
+            >
+              {icon}
+            </button>
+          ))}
+        </nav>
+      </aside>
+    );
+  }
 
   return (
     <aside className={styles.sidebar} data-testid="sidebar">
@@ -41,12 +71,13 @@ export function Sidebar({ uiStore }: SidebarProps) {
         </button>
       </div>
       <nav className={styles.tabs}>
-        {panels.map(({ key, label }) => (
+        {panels.map(({ key, label, icon }) => (
           <button
             key={key}
             className={`${styles.tab} ${activePanel === key ? styles.activeTab : ''}`}
             onClick={() => uiStore.getState().setActivePanel(key)}
           >
+            <span className={styles.tabIcon}>{icon}</span>
             {label}
           </button>
         ))}
