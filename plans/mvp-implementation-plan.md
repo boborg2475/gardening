@@ -20,6 +20,12 @@ Set up the core rendering and state infrastructure.
 
 **Key BEAMs**: BEAM-canvas-engine, BEAM-state-persistence, BEAM-export-pwa-layout (layout specs only)
 
+**Sub-PRs**:
+1. **Types + Stores** — Domain types, projectStore (with zundo), uiStore, selectors
+2. **Canvas Engine** — CanvasEngine class, render loop, world-to-screen transforms, pan/zoom, HiDPI, resize
+3. **Persistence** — Dexie schema, projectRepo CRUD, debounced auto-save
+4. **Layout** — Desktop sidebar + mobile bottom sheets, toolbar, responsive shell
+
 ### Phase 2 — Core Drawing
 
 Enable users to draw property boundaries, house outlines, and garden zones.
@@ -68,6 +74,7 @@ Make the app installable and offline-capable.
 
 These are fully designed in the LLDs and BEAMs but deferred:
 
+- Zone navigation and sub-zones (see LLD-13-zone-navigation)
 - Feature catalog and placement (LLD-06, BEAM-features-plants)
 - Plant database and planting tracker (LLD-07, BEAM-features-plants)
 - Measurement tool (LLD-08, BEAM-measurement-undo)
