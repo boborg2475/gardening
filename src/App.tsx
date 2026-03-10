@@ -1,9 +1,7 @@
+import { AppLayout } from './components/layout/AppLayout'
+
 function App() {
-  return (
-    <div>
-      <h1>Garden Yard Planner</h1>
-    </div>
-  )
+  return <AppLayout />
 }
 
 export default App
