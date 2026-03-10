@@ -61,13 +61,12 @@ describe('Sidebar [LLD-12]', () => {
       expect(uiStore.getState().sidebarOpen).toBe(true);
     });
 
-    it('sets active panel when icon button is clicked', () => {
+    it('sets active panel when icon button is clicked without expanding', () => {
       render(<Sidebar uiStore={uiStore} />);
       const zoneBtn = screen.getByTitle('Zones');
       fireEvent.click(zoneBtn);
-      // setActivePanel opens sidebar and sets panel
       expect(uiStore.getState().activePanel).toBe('zones');
-      expect(uiStore.getState().sidebarOpen).toBe(true);
+      expect(uiStore.getState().sidebarOpen).toBe(false);
     });
   });
 });

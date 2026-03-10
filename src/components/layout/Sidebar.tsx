@@ -48,7 +48,7 @@ export function Sidebar({ uiStore }: SidebarProps) {
               key={key}
               className={`${styles.iconTab} ${activePanel === key ? styles.activeIconTab : ''}`}
               title={label}
-              onClick={() => uiStore.getState().setActivePanel(key)}
+              onClick={() => uiStore.setState({ activePanel: key })}
             >
               {icon}
             </button>
