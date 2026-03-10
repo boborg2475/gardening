@@ -53,6 +53,17 @@ Pointer events flow through a unified handler (mouse + touch) → dispatched to 
 
 **NEVER write implementation code before writing tests.** Follow red/green TDD: write failing tests first (red), then write the minimum code to make them pass (green), then refactor. All features must have tests written and confirmed red before any implementation begins.
 
+## Definition of Done
+
+A phase or step is NOT complete until all three of the following pass:
+1. **Tests pass** — `npm run test -- --run` exits cleanly with no failures.
+2. **Linter passes** — `npm run lint` exits with no errors.
+3. **Dev server starts** — `npm run dev` starts without errors (verify it boots, then stop it).
+
+4. **Docs updated** — If the work changed plans or features, update the relevant docs in `plans/` to reflect the current state.
+
+Do not move on to the next phase or step until all four checks are green.
+
 ## Planning Workflow
 
 **ALWAYS write the plan out to the `plans/` directory before implementing any code.** When finishing a design phase (HLD, LLD, etc.), save the output as a markdown file in `plans/` (or `plans/low-level-design-docs/` for LLDs). Do not begin coding until the plan is written to disk.
