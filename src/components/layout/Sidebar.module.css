@@ -17,7 +17,7 @@
   align-items: center;
   background: #fafafa;
   border-right: 1px solid #ddd;
-  padding-top: 8px;
+  padding: 8px;
 }
 
 .header {
@@ -103,7 +103,8 @@
 .iconTabs {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  padding: 4px 0;
 }
 
 .iconTab {
