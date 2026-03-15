@@ -1,0 +1,207 @@
+name: beads-driven
+version: 1
+description: OpenSpec workflow with beads issue tracking - proposal → specs (bd issues) → design → tasks (bd issues)
+artifacts:
+  - id: proposal
+    generates: proposal.md
+    description: Initial proposal document outlining the change
+    template: proposal.md
+    instruction: |
+      Create the proposal document that establishes WHY this change is needed.
+
+      Sections:
+      - **Why**: 1-2 sentences on the problem or opportunity. What problem does this solve? Why now?
+      - **What Changes**: Bullet list of changes. Be specific about new capabilities, modifications, or removals. Mark breaking changes with **BREAKING**.
+      - **Capabilities**: Identify which specs will be created or modified:
+        - **New Capabilities**: List capabilities being introduced. Each becomes a beads feature issue AND a spec summary at `specs/<name>/spec.md`. Use kebab-case names (e.g., `user-auth`, `data-export`).
+        - **Modified Capabilities**: List existing capabilities whose REQUIREMENTS are changing. Only include if spec-level behavior changes. Check existing beads issues and `openspec/specs/` for existing spec names. Leave empty if no requirement changes.
+      - **Impact**: Affected code, APIs, dependencies, or systems.
+
+      IMPORTANT: The Capabilities section is critical. It creates the contract between
+      proposal and specs phases. Research existing specs before filling this in.
+      Each capability listed here will need a corresponding beads spec issue AND spec file.
+
+      Keep it concise (1-2 pages). Focus on the "why" not the "how" -
+      implementation details belong in design.md.
+    requires: []
+
+  - id: specs
+    generates: "specs/**/*.md"
+    description: Behavioral specs created as beads issues and written as spec summary files
+    template: spec.md
+    instruction: |
+      Create specifications as BOTH beads issues AND spec summary files.
+
+      For each capability listed in the proposal's Capabilities section:
+
+      **Step 1: Write the spec summary file**
+      Create `specs/<capability>/spec.md` using the template. Each spec entry should contain:
+      - **Spec name**: A clear, descriptive name (becomes the beads issue title)
+      - **Description**: What the system SHALL do (normative language)
+      - **Acceptance Criteria**: Testable scenarios in GIVEN/WHEN/THEN format, each as a checkbox
+      - **Design Notes**: Implementation hints and approach guidance
+      - **Edge Cases**: Boundary conditions and error scenarios
+      - **Priority**: 0-4 (0=highest, maps to beads priority)
+      - **Labels**: Capability name + any relevant labels
+
+      **Step 2: Create beads issues from the specs**
+      For each spec entry, run:
+      ```bash
+      bd create "<spec-name>" \
+        --type feature \
+        --description "<description>" \
+        --acceptance "<acceptance criteria as text>" \
+        --design "<design notes>" \
+        --priority <0-4> \
+        --labels "<capability-name>,spec" \
+        --spec-id "<capability-name>"
+      ```
+      Record the returned beads issue ID in the spec file next to each spec entry.
+
+      **Step 3: Set up dependencies between related specs**
+      If spec B depends on spec A being implemented first:
+      ```bash
+      bd dep add <B-id> <A-id>
+      ```
+
+      Format guidelines for the spec file:
+      - Group specs under the capability name
+      - Each spec: `### Spec: <name>` followed by the structured sections
+      - Use SHALL/MUST for normative requirements
+      - Acceptance criteria MUST use GIVEN/WHEN/THEN format with checkboxes
+      - Every spec MUST have at least one acceptance criterion
+      - After creating beads issues, annotate each spec with its beads ID: `**Beads ID:** gardening-XXXXXX`
+
+      The spec files serve as human-readable documentation while beads issues
+      provide the trackable, dependency-aware implementation targets.
+    requires:
+      - proposal
+
+  - id: design
+    generates: design.md
+    description: Technical design document with implementation details
+    template: design.md
+    instruction: |
+      Create the design document that explains HOW to implement the change.
+
+      When to include design.md (create only if any apply):
+      - Cross-cutting change (multiple services/modules) or new architectural pattern
+      - New external dependency or significant data model changes
+      - Security, performance, or migration complexity
+      - Ambiguity that benefits from technical decisions before coding
+
+      Sections:
+      - **Context**: Background, current state, constraints, stakeholders
+      - **Goals / Non-Goals**: What this design achieves and explicitly excludes
+      - **Decisions**: Key technical choices with rationale (why X over Y?). Include alternatives considered for each decision.
+      - **Risks / Trade-offs**: Known limitations, things that could go wrong. Format: [Risk] → Mitigation
+      - **Migration Plan**: Steps to deploy, rollback strategy (if applicable)
+      - **Open Questions**: Outstanding decisions or unknowns to resolve
+
+      Focus on architecture and approach, not line-by-line implementation.
+      Reference the proposal for motivation and beads spec issues for requirements.
+
+      Good design docs explain the "why" behind technical decisions.
+    requires:
+      - proposal
+
+  - id: tasks
+    generates: tasks.md
+    description: Implementation tasks created as beads issues under an epic
+    template: tasks.md
+    instruction: |
+      Create implementation tasks as BOTH a tasks.md summary AND beads issues.
+
+      **Step 1: Create an epic for this change**
+      ```bash
+      bd create "<change-name>" --type epic --description "<change summary from proposal>"
+      ```
+      Record the epic ID.
+
+      **Step 2: Plan the task breakdown**
+      Reference specs (beads feature issues) for WHAT needs to be built and
+      design.md for HOW to build it. Break work into small, focused tasks that:
+      - Can be completed in one session
+      - Are ordered by dependency
+      - Each reference which spec(s) they implement
+      - Have clear acceptance criteria for when they're done
+
+      **Step 3: Create beads task issues**
+      For each task:
+      ```bash
+      bd create "<task description>" \
+        --type task \
+        --parent <epic-id> \
+        --description "<detailed description>" \
+        --acceptance "<how to verify this is done>" \
+        --spec-id "<spec-capability-name>" \
+        --priority <0-4> \
+        --labels "task,<capability-name>"
+      ```
+
+      **Step 4: Set up task dependencies**
+      If task B requires task A to be done first:
+      ```bash
+      bd dep add <B-id> <A-id>
+      ```
+
+      **Step 5: Write tasks.md**
+      Write the summary file with checkbox format (for OpenSpec tracking).
+      Group tasks under numbered headings. Each task line should include:
+      - Checkbox: `- [ ] X.Y Task description`
+      - Spec reference: which beads spec issue it implements
+      - Beads ID: the created task's beads issue ID
+      - Acceptance criteria
+
+      **IMPORTANT**: The checkbox format `- [ ]` must be preserved for OpenSpec
+      apply-phase tracking. Mark tasks `- [x]` as they are completed.
+
+      Example:
+      ```
+      ### Epic: my-change (gardening-XXXXXX)
+
+      ## 1. Setup
+
+      - [ ] 1.1 Create module structure (gardening-YYYYYY)
+        - **Spec:** gardening-AAAAAA
+        - **Acceptance:** Directory structure exists with index files
+
+      ## 2. Core Implementation
+
+      - [ ] 2.1 Implement data layer (gardening-ZZZZZZ)
+        - **Spec:** gardening-BBBBBB
+        - **Acceptance:** Unit tests pass for CRUD operations
+        - **Depends on:** 1.1
+      ```
+    requires:
+      - specs
+      - design
+
+apply:
+  requires: [tasks]
+  tracks: tasks.md
+  instruction: |
+    Implementation uses beads for work tracking alongside OpenSpec's task file.
+
+    **Finding work:**
+    ```bash
+    bd ready
+    ```
+    This shows unblocked tasks ready to implement. Pick the next ready task.
+
+    **Working on a task:**
+    1. Read the task's spec (beads issue) and design.md for context
+    2. Implement the changes
+    3. Mark complete in both places:
+       - Update tasks.md: `- [ ]` → `- [x]`
+       - Close the beads issue: `bd close <task-id>`
+
+    **If blocked:**
+    - Use `bd update <id> --status blocked` and explain the blocker
+    - Pause and ask for guidance
+
+    **On completion:**
+    - All tasks in tasks.md should be `- [x]`
+    - All task beads issues should be closed
+    - Run `bd epic status <epic-id>` to verify
+    - Suggest archiving the change
