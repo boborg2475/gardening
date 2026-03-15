@@ -64,6 +64,13 @@ Zoom anchors to the focal point (world point under the cursor stays fixed) by ad
 **Decision**: On resize, the canvas buffer is set to `cssWidth * dpr` × `cssHeight * dpr`. A `ctx.setTransform(dpr, 0, 0, dpr, 0, 0)` is applied so all drawing code uses CSS pixel coordinates naturally.
 **Rationale**: Drawing code never needs to know the device pixel ratio. The transform handles it transparently. A `ResizeObserver` on the container triggers `resizeCanvas()` automatically.
 
+### D8: Measurement labels use adaptive sub-units based on distance magnitude
+**Decision**: Measurement labels display in the primary unit (feet or meters) when the value is ≥ 1 unit, and switch to the sub-unit (inches or centimeters) when the value is < 1 unit.
+- Imperial: ≥ 1 ft → display as feet (e.g., `12.5 ft`); < 1 ft → display as inches (e.g., `8 in`)
+- Metric: ≥ 1 m → display as meters (e.g., `3.8 m`); < 1 m → display as centimeters (e.g., `45 cm`)
+
+**Rationale**: A garden planner operates across a wide range of scales — a property boundary might be 80 ft across while a planting spacing might be 6 in. Displaying `0.5 ft` or `0.008 m` degrades readability at fine scales. Switching to the sub-unit at < 1 primary unit keeps labels human-readable at any zoom. The threshold is value-based (not zoom-based) so a short measurement reads as inches regardless of whether the user is zoomed in or out.
+
 ## Risks / Trade-offs
 
 - **[Risk] Tool pointer event handling diverges across mouse and touch** → Mitigation: middle-mouse pan and pinch-to-zoom are handled at the engine level before tool dispatch; tools only receive normalized pointer events.

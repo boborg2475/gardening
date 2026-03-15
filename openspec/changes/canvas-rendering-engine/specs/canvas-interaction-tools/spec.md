@@ -11,6 +11,11 @@ The system SHALL route all canvas pointer events (mousedown, mousemove, mouseup,
 - **WHEN** `uiStore.activeTool` changes from `'select'` to `'draw'`
 - **THEN** the next pointer event is dispatched to the draw tool, not the select tool
 
+#### Scenario: Switching tools clears in-progress work
+- **WHEN** `uiStore.activeTool` changes while a tool has in-progress state (e.g., partial polygon vertices, measurement start point, placement preview)
+- **THEN** `uiStore.drawingPreview` is cleared without committing
+- **THEN** no partial data is written to `projectStore`
+
 ---
 
 ### Requirement: Middle-mouse and two-finger drag pan the viewport

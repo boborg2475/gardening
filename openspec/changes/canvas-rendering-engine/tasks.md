@@ -68,4 +68,4 @@
 - [ ] 6.1 Run `npm run test -- --run` and confirm all tests pass
 - [ ] 6.2 Run `npm run lint` and confirm no errors
 - [ ] 6.3 Run `npm run dev` and confirm dev server starts without errors
-- [ ] 6.4 Update `plans/` docs if any design decisions changed during implementation
+- [ ] 6.4 Delete `plans/low-level-design-docs/01-canvas-engine-rendering.md` and `plans/specs/BEAM-canvas-engine.md` — superseded by the OpenSpec capability specs in this change

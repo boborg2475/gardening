@@ -103,7 +103,15 @@ The system SHALL render each measurement as a line segment between two world poi
 #### Scenario: Measurement line and label drawn
 - **WHEN** a measurement has two endpoints
 - **THEN** a line is drawn between them
-- **THEN** a text label showing the distance (in project units) is drawn near the midpoint
+- **THEN** a text label showing the distance is drawn near the midpoint
+
+#### Scenario: Label uses feet/meters for distances ≥ 1 primary unit
+- **WHEN** the measurement distance is ≥ 1 ft (imperial) or ≥ 1 m (metric)
+- **THEN** the label displays the value in feet (e.g., `12.5 ft`) or meters (e.g., `3.8 m`)
+
+#### Scenario: Label uses inches/cm for distances < 1 primary unit
+- **WHEN** the measurement distance is < 1 ft (imperial) or < 1 m (metric)
+- **THEN** the label displays the value in inches (e.g., `8 in`) or centimeters (e.g., `45 cm`)
 
 #### Scenario: Measurements visibility controlled by layer toggle
 - **WHEN** `layerVisibility.measurements` is `false`
