@@ -58,11 +58,12 @@ Pointer events flow through a unified handler (mouse + touch) → dispatched to 
 
 **NEVER write implementation code before writing tests.** Follow red/green TDD: write failing tests first (red), then write the minimum code to make them pass (green), then refactor. All features must have tests written and confirmed red before any implementation begins.
 
-**Tag tests with the spec they pertain to.** Every `describe` block must include a tag referencing the relevant spec document (LLD or BEAM). For example:
+**Tag tests with the spec they pertain to.** Every `describe` block must include a tag referencing the relevant beads spec issue ID. For example:
 ```typescript
-describe('projectStore [LLD-02]', () => { ... });
-describe('zone cascade delete [BEAM-drawing-zones]', () => { ... });
+describe('projectStore [gardening-a3f2dd]', () => { ... });
+describe('zone cascade delete [gardening-b7e1c4]', () => { ... });
 ```
+Legacy tags using `[LLD-XX]` or `[BEAM-*]` format are from before the beads migration and may still exist in older tests.
 
 ## Definition of Done
 

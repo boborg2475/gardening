@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "server",
+  "dolt_database": "gardening",
+  "project_id": "23e2f2b0-6d48-4160-b87e-5289e27812f4"
+}

@@ -1,0 +1,21 @@
+schema: beads-driven
+
+context: |
+  Tech stack: TypeScript, React 18, Vite, Zustand, HTML Canvas 2D
+  Testing: Vitest with TDD (red/green/refactor)
+  Persistence: IndexedDB via Dexie (client-side only PWA)
+  Issue tracking: beads (bd) — specs are feature issues, tasks are task issues under epics
+  Domain: Garden yard planner with canvas-based map rendering
+
+rules:
+  specs:
+    - Each spec MUST be created as a beads feature issue via `bd create`
+    - Acceptance criteria MUST use GIVEN/WHEN/THEN format
+    - Record beads issue IDs in the spec summary files
+    - Tag test describe blocks with beads issue IDs, e.g. [gardening-a3f2dd]
+  tasks:
+    - Create an epic via `bd create --type epic` for each change
+    - Each task MUST be a beads task issue with --parent set to the epic
+    - Link tasks to their spec issues via --spec-id
+    - Set up dependencies between tasks via `bd dep add`
+    - Keep checkbox format in tasks.md for OpenSpec tracking compatibility
