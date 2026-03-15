@@ -1,0 +1,39 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px;
+  background: #f5f5f5;
+  border-right: 1px solid #ddd;
+  min-width: 60px;
+  align-items: center;
+}
+
+.toolButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+  font-size: 11px;
+  text-align: center;
+  line-height: 1.2;
+  padding: 4px;
+  transition: background-color 0.15s, border-color 0.15s;
+}
+
+.toolButton:hover {
+  background: #e3f2fd;
+  border-color: #90caf9;
+}
+
+.active {
+  background: #bbdefb;
+  border-color: #2196f3;
+  color: #1565c0;
+  font-weight: 600;
+}

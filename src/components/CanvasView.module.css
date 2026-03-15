@@ -1,0 +1,21 @@
+.canvasContainer {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #fff;
+}
+
+.canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: crosshair;
+}
+
+.canvas.panning {
+  cursor: grabbing;
+}
+
+.canvas.selectMode {
+  cursor: default;
+}
