@@ -1,6 +1,8 @@
 ## ADDED Requirements
 
 ### Requirement: Hit test resolves a screen point to a domain object
+**Beads ID:** gardening-472
+
 The system SHALL provide a `hitTest(sx, sy): HitResult | null` method on `CanvasEngine` that converts the screen point to world coordinates and tests against all renderable objects, returning the topmost hit or `null`.
 
 #### Scenario: Returns null on empty canvas
@@ -18,6 +20,8 @@ The system SHALL provide a `hitTest(sx, sy): HitResult | null` method on `Canvas
 ---
 
 ### Requirement: Hit test precedence order is features > zones > property vertices > house > empty
+**Beads ID:** gardening-alk
+
 The system SHALL test objects in precedence order and return the first match, so that smaller objects (features) take priority over larger containing shapes (zones).
 
 #### Scenario: Feature wins over zone when both overlap
@@ -31,6 +35,8 @@ The system SHALL test objects in precedence order and return the first match, so
 ---
 
 ### Requirement: Property boundary vertex hit detects within a tolerance radius
+**Beads ID:** gardening-qtj
+
 The system SHALL match a property boundary vertex when the screen point is within a configurable tolerance radius (default: 8 screen pixels) of the vertex's screen position.
 
 #### Scenario: Vertex hit within tolerance
@@ -44,6 +50,8 @@ The system SHALL match a property boundary vertex when the screen point is withi
 ---
 
 ### Requirement: Hit test uses current viewport for coordinate conversion
+**Beads ID:** gardening-ql8
+
 The system SHALL use the current `panX`, `panY`, and `zoom` values from the viewport when converting screen to world coordinates for hit testing.
 
 #### Scenario: Hit test is viewport-aware
@@ -53,6 +61,8 @@ The system SHALL use the current `panX`, `panY`, and `zoom` values from the view
 ---
 
 ### Requirement: Hit test only tests objects on visible layers
+**Beads ID:** gardening-b1q
+
 The system SHALL skip objects whose layer is toggled off in `uiStore.layerVisibility` when performing hit testing.
 
 #### Scenario: Hidden zone is not hittable

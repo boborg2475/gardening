@@ -1,19 +1,23 @@
 ## ADDED Requirements
 
 ### Requirement: Grid renders with adaptive minor spacing
+**Beads ID:** gardening-ie6
+
 The system SHALL render a grid overlay where minor line spacing doubles progressively until lines are at least 10 screen pixels apart at the current zoom level.
 
 #### Scenario: Spacing adapts at low zoom
 - **WHEN** zoom is low enough that base spacing (1 world unit) would produce lines closer than 10px on screen
-- **THEN** spacing doubles until each interval is ≥ 10 screen pixels
+- **THEN** spacing doubles until each interval is >= 10 screen pixels
 
 #### Scenario: Spacing unchanged at high zoom
-- **WHEN** zoom is high enough that base spacing already produces ≥ 10px separation
+- **WHEN** zoom is high enough that base spacing already produces >= 10px separation
 - **THEN** base spacing is used without doubling
 
 ---
 
 ### Requirement: Grid renders major lines at regular intervals
+**Beads ID:** gardening-pa1
+
 The system SHALL draw visually distinct major grid lines every `majorEvery` minor intervals (default: every 5).
 
 #### Scenario: Major lines at correct intervals
@@ -24,6 +28,8 @@ The system SHALL draw visually distinct major grid lines every `majorEvery` mino
 ---
 
 ### Requirement: Grid is only drawn within the visible viewport
+**Beads ID:** gardening-v8q
+
 The system SHALL cull grid lines that fall outside the current viewport bounds.
 
 #### Scenario: Off-screen lines not drawn
@@ -33,6 +39,8 @@ The system SHALL cull grid lines that fall outside the current viewport bounds.
 ---
 
 ### Requirement: Grid visibility is controlled by layer toggle
+**Beads ID:** gardening-n6y
+
 The system SHALL not render the grid when `uiStore.layerVisibility.grid` is `false`.
 
 #### Scenario: Grid hidden when layer off
@@ -46,6 +54,8 @@ The system SHALL not render the grid when `uiStore.layerVisibility.grid` is `fal
 ---
 
 ### Requirement: Property boundary renders as a closed polygon
+**Beads ID:** gardening-b7n
+
 The system SHALL render the project's property boundary vertices as a closed polygon stroke in world coordinates.
 
 #### Scenario: Boundary drawn with correct vertices
@@ -59,6 +69,8 @@ The system SHALL render the project's property boundary vertices as a closed pol
 ---
 
 ### Requirement: House renders as a filled rectangle
+**Beads ID:** gardening-tx7
+
 The system SHALL render the house footprint as a filled, optionally rotated rectangle.
 
 #### Scenario: House drawn at correct position and size
@@ -72,6 +84,8 @@ The system SHALL render the house footprint as a filled, optionally rotated rect
 ---
 
 ### Requirement: Zones render as filled, stroked polygons
+**Beads ID:** gardening-ar8
+
 The system SHALL render each zone as a filled and stroked polygon using the zone's color.
 
 #### Scenario: Zone fills with zone color
@@ -85,6 +99,8 @@ The system SHALL render each zone as a filled and stroked polygon using the zone
 ---
 
 ### Requirement: Placed features render as icons at world position
+**Beads ID:** gardening-39v
+
 The system SHALL render each placed feature using a canvas draw function at its world position, scaled to its defined size.
 
 #### Scenario: Feature drawn at correct position
@@ -98,6 +114,8 @@ The system SHALL render each placed feature using a canvas draw function at its 
 ---
 
 ### Requirement: Measurements render as lines with distance labels
+**Beads ID:** gardening-xh5
+
 The system SHALL render each measurement as a line segment between two world points with a text label showing the computed distance.
 
 #### Scenario: Measurement line and label drawn
@@ -112,6 +130,8 @@ The system SHALL render each measurement as a line segment between two world poi
 ---
 
 ### Requirement: Drawing preview renders active tool's in-progress shape
+**Beads ID:** gardening-ony
+
 The system SHALL render a transient preview shape while the user is mid-draw, using the geometry stored in `uiStore.drawingPreview`.
 
 #### Scenario: Preview visible during draw
@@ -125,6 +145,8 @@ The system SHALL render a transient preview shape while the user is mid-draw, us
 ---
 
 ### Requirement: Selection highlights render over selected objects
+**Beads ID:** gardening-uj3
+
 The system SHALL render a highlight overlay on each object whose ID is in `uiStore.selectedIds`.
 
 #### Scenario: Selected zone highlighted
@@ -138,7 +160,9 @@ The system SHALL render a highlight overlay on each object whose ID is in `uiSto
 ---
 
 ### Requirement: Render order is back-to-front
-The system SHALL draw layers in the following fixed order: grid → property boundary → house → zones → features → measurements → drawing preview → selection highlights.
+**Beads ID:** gardening-u3o
+
+The system SHALL draw layers in the following fixed order: grid -> property boundary -> house -> zones -> features -> measurements -> drawing preview -> selection highlights.
 
 #### Scenario: Later layers appear on top
 - **WHEN** multiple layers overlap the same screen area

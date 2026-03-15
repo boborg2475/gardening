@@ -1,6 +1,8 @@
 ## ADDED Requirements
 
 ### Requirement: Pointer events are dispatched to the active tool
+**Beads ID:** gardening-t39
+
 The system SHALL route all canvas pointer events (mousedown, mousemove, mouseup, touchstart, touchmove, touchend) to the currently active tool as defined by `uiStore.activeTool`.
 
 #### Scenario: Active tool receives pointer events
@@ -14,6 +16,8 @@ The system SHALL route all canvas pointer events (mousedown, mousemove, mouseup,
 ---
 
 ### Requirement: Middle-mouse and two-finger drag pan the viewport
+**Beads ID:** gardening-f8d
+
 The system SHALL pan the viewport when the user drags with the middle mouse button or a two-finger touch gesture, regardless of the active tool.
 
 #### Scenario: Middle-mouse pan
@@ -27,6 +31,8 @@ The system SHALL pan the viewport when the user drags with the middle mouse butt
 ---
 
 ### Requirement: Scroll wheel and pinch-to-zoom change zoom level
+**Beads ID:** gardening-8mw
+
 The system SHALL zoom the viewport on scroll wheel events and pinch gestures, anchored to the pointer's world position.
 
 #### Scenario: Scroll wheel zoom in
@@ -40,6 +46,8 @@ The system SHALL zoom the viewport on scroll wheel events and pinch gestures, an
 ---
 
 ### Requirement: Select tool selects objects by click
+**Beads ID:** gardening-m05
+
 The system SHALL, when the select tool is active, identify the object under the pointer on click and set it as the sole selection in `uiStore.selectedIds`.
 
 #### Scenario: Click selects an object
@@ -57,6 +65,8 @@ The system SHALL, when the select tool is active, identify the object under the 
 ---
 
 ### Requirement: Draw tool creates polygon shapes by clicking vertices
+**Beads ID:** gardening-oeo
+
 The system SHALL, when the draw tool is active, accumulate clicked world points as polygon vertices, storing them in `uiStore.drawingPreview`, and commit the polygon to `projectStore` on double-click or close.
 
 #### Scenario: Each click adds a vertex to the preview
@@ -79,6 +89,8 @@ The system SHALL, when the draw tool is active, accumulate clicked world points 
 ---
 
 ### Requirement: Place tool places a feature at a clicked world position
+**Beads ID:** gardening-n3v
+
 The system SHALL, when the place tool is active, add a `PlacedFeature` to `projectStore` at the world position of the pointer click.
 
 #### Scenario: Click places feature
@@ -92,6 +104,8 @@ The system SHALL, when the place tool is active, add a `PlacedFeature` to `proje
 ---
 
 ### Requirement: Measure tool records a distance between two clicked world points
+**Beads ID:** gardening-2d3
+
 The system SHALL, when the measure tool is active, capture two world points on successive clicks and add a `Measurement` to `projectStore`.
 
 #### Scenario: First click sets measurement start

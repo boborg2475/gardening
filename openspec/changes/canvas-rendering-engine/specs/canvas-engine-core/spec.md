@@ -1,6 +1,8 @@
 ## ADDED Requirements
 
 ### Requirement: Canvas initializes with default viewport
+**Beads ID:** gardening-wip
+
 The system SHALL create and attach a `<canvas>` element to the provided container with default viewport state (`panX: 0`, `panY: 0`, `zoom: 1.0`) when `mount()` is called.
 
 #### Scenario: Mount attaches canvas to container
@@ -15,6 +17,8 @@ The system SHALL create and attach a `<canvas>` element to the provided containe
 ---
 
 ### Requirement: World-to-screen coordinate conversion
+**Beads ID:** gardening-pj2
+
 The system SHALL convert a world coordinate `(x, y)` to screen pixels using `sx = (x - panX) * zoom`, `sy = (y - panY) * zoom`.
 
 #### Scenario: Origin at default viewport
@@ -32,6 +36,8 @@ The system SHALL convert a world coordinate `(x, y)` to screen pixels using `sx 
 ---
 
 ### Requirement: Screen-to-world coordinate conversion
+**Beads ID:** gardening-zxn
+
 The system SHALL convert screen pixels `(sx, sy)` back to world coordinates using `x = sx / zoom + panX`, `y = sy / zoom + panY`.
 
 #### Scenario: Round-trip accuracy
@@ -45,6 +51,8 @@ The system SHALL convert screen pixels `(sx, sy)` back to world coordinates usin
 ---
 
 ### Requirement: Zoom with focal-point anchoring
+**Beads ID:** gardening-dhi
+
 The system SHALL zoom the viewport such that the world point under the focal screen coordinate remains fixed on screen after the zoom.
 
 #### Scenario: Focal point stays fixed
@@ -62,6 +70,8 @@ The system SHALL zoom the viewport such that the world point under the focal scr
 ---
 
 ### Requirement: Pan by screen delta
+**Beads ID:** gardening-oo1
+
 The system SHALL shift the viewport when `pan(dxScreen, dyScreen)` is called, converting the screen delta to world units.
 
 #### Scenario: Pan right
@@ -75,6 +85,8 @@ The system SHALL shift the viewport when `pan(dxScreen, dyScreen)` is called, co
 ---
 
 ### Requirement: Responsive canvas sizing with HiDPI support
+**Beads ID:** gardening-fo5
+
 The system SHALL resize the canvas buffer and CSS dimensions to match the container, scaled by the device pixel ratio, whenever the container dimensions change.
 
 #### Scenario: Resize updates canvas dimensions
@@ -89,6 +101,8 @@ The system SHALL resize the canvas buffer and CSS dimensions to match the contai
 ---
 
 ### Requirement: Render loop with dirty-flag efficiency
+**Beads ID:** gardening-426
+
 The system SHALL drive rendering via `requestAnimationFrame`, only issuing a draw call when state has changed (tracked via a `needsRender` flag).
 
 #### Scenario: No redundant draws
@@ -102,6 +116,8 @@ The system SHALL drive rendering via `requestAnimationFrame`, only issuing a dra
 ---
 
 ### Requirement: Mount/unmount lifecycle is idempotent
+**Beads ID:** gardening-ohy
+
 The system SHALL allow calling `mount()` or `unmount()` multiple times without side effects.
 
 #### Scenario: Double mount is safe
