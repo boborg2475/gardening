@@ -1,0 +1,92 @@
+.layout {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #fff;
+  border-bottom: 1px solid #ddd;
+  flex-shrink: 0;
+}
+
+.toolbar h1 {
+  font-size: 16px;
+  margin-right: 16px;
+  white-space: nowrap;
+}
+
+.toolGroup {
+  display: flex;
+  gap: 4px;
+  margin-left: 8px;
+  padding-left: 8px;
+  border-left: 1px solid #ddd;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.canvasArea {
+  flex: 1;
+  position: relative;
+  min-width: 0;
+}
+
+.sidePanel {
+  width: 280px;
+  background: #fff;
+  border-left: 1px solid #ddd;
+  overflow-y: auto;
+  flex-shrink: 0;
+  padding: 16px;
+}
+
+.sidePanel h2 {
+  font-size: 14px;
+  margin-bottom: 12px;
+}
+
+.field {
+  margin-bottom: 12px;
+}
+
+.field input,
+.field select,
+.field textarea {
+  width: 100%;
+}
+
+.colorRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.colorSwatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  padding: 0;
+}
+
+.noSelection {
+  color: #999;
+  font-size: 13px;
+  font-style: italic;
+}
+
+.undoGroup {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
