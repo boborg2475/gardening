@@ -1,8 +1,18 @@
 {
   "permissions": {
     "allow": [
+      "Read(//Users/bobkatulka/Documents/coding/patterns/gardening-*/**)",                                                  
+      "Edit(//Users/bobkatulka/Documents/coding/patterns/gardening-*/**)",                                                  
+      "Write(//Users/bobkatulka/Documents/coding/patterns/gardening-*/**)",                                                 
+      "Glob(//Users/bobkatulka/Documents/coding/patterns/gardening-*/**)",                                                  
+      "Grep(//Users/bobkatulka/Documents/coding/patterns/gardening-*/**)",                                                  
+      "Bash(git *)",
       "Bash(npm *)",
-      "Bash(npx *)"
+      "Bash(npx *)",
+      "Bash(ls *)",
+      "Bash(mkdir *)",
+      "Bash(cd *)",
+      "Bash(cd /Users/bobkatulka/Documents/coding/patterns/gardening-* && *)"
     ]
   }
 }

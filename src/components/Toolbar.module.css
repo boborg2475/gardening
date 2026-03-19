@@ -1,0 +1,64 @@
+.toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: #f5f0e8;
+  border-right: 1px solid #d4c9b8;
+  width: 100px;
+  flex-shrink: 0;
+}
+
+.title {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #6b5e4f;
+  margin: 0 0 4px 0;
+}
+
+.buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: #5a4e3f;
+}
+
+.button:hover {
+  background: rgba(45, 90, 45, 0.1);
+  border-color: #b8c9a0;
+}
+
+.active {
+  background: #2d5a2d;
+  color: #fff;
+  border-color: #2d5a2d;
+}
+
+.active:hover {
+  background: #3a6f3a;
+  border-color: #3a6f3a;
+}
+
+.icon {
+  font-size: 20px;
+  line-height: 1;
+}
+
+.label {
+  font-size: 10px;
+  line-height: 1;
+}
