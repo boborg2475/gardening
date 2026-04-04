@@ -44,8 +44,8 @@ story_location: _bmad-output/implementation-artifacts
 development_status:
   # Epic 1: Property Creation & Drawing Canvas
   epic-1: in-progress
-  1-1-project-scaffold-and-core-architecture: review
-  1-2-event-store-and-property-data-model: backlog
+  1-1-project-scaffold-and-core-architecture: done
+  1-2-event-store-and-property-data-model: review
   1-3-property-creation: backlog
   1-4-canvas-foundation-with-pan-and-zoom: backlog
   1-5-polygon-drawing-tool: backlog

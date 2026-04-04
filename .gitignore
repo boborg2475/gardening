@@ -145,5 +145,9 @@ build/
 /test-results/
 /playwright-report/
 
+# Stryker mutation reports
+reports/
+.stryker-tmp/
+
 # My notes
 MY_NOTES.md
