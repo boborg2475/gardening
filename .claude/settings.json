@@ -12,7 +12,19 @@
       "Bash(ls *)",
       "Bash(mkdir *)",
       "Bash(cd *)",
-      "Bash(cd /Users/bobkatulka/Documents/coding/patterns/gardening-* && *)"
+      "Bash(cd /Users/bobkatulka/Documents/coding/patterns/gardening-* && *)",
+      "Bash(node *)",
+      "Bash(find *)",
+      "Bash(echo *)",
+      "Bash(cat *)",
+      "Bash(npm run * && *)",
+      "Bash(npx * && *)",
+      "Bash(npm run * 2>&1*)",
+      "Bash(npx * 2>&1*)",
+      "Bash(npm install * && *)",
+      "Bash(git * && git *)",
+      "Bash(git * && npm *)",
+      "Bash(rm -rf /tmp/*)"
     ]
   }
 }
