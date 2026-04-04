@@ -14,25 +14,102 @@ The user provides a STORY_ID (e.g., `1-4`). You run through 5 phases sequentiall
 
 ---
 
+## Phase 0: BUILD CONTEXT BRIEF
+
+**Goal:** The PM reads the codebase ONCE and produces a context brief that all agents consume. This prevents every agent from re-reading the same files independently.
+
+### What the PM reads:
+1. The story spec file
+2. The architecture doc (`_bmad-output/planning-artifacts/architecture.md`) — naming conventions, structure, anti-patterns
+3. The epics doc — ACs for this story
+4. The PRD — relevant FRs
+5. Prior completed story specs — what was built, what patterns were established
+6. Current source files that this story will depend on or modify
+7. Existing test files — to understand patterns
+8. Any framework/library documentation relevant to the story (e.g., check actual API signatures of dependencies by reading their `.d.ts` files in `node_modules/`)
+
+### Context Brief Structure:
+
+The PM produces a context brief with these sections. The brief is NOT written to a file — it's passed directly in agent prompts.
+
+```
+## Context Brief for Story {STORY_ID}
+
+### 1. Acceptance Criteria (verbatim — never summarize)
+Copy ACs exactly from the story spec. Include FR references.
+
+### 2. Existing API Signatures (exact code)
+For every function, type, or component this story depends on, include the EXACT
+signature copied from source. Not a description — the actual code.
+
+Example:
+  // src/lib/stores/materialized-state.svelte.ts
+  export function getProperties(): Property[]
+  export function getProperty(id: string): Property | undefined
+  export async function dispatchEvent(eventData: Omit<AppEvent, 'id' | 'timestamp'>): Promise<AppEvent>
+
+  // src/lib/types/entities.ts
+  export type Property = { id: string; name: string; dimensions?: Dimensions; ... }
+
+### 3. File Map (paths + one-line purpose)
+Every relevant file the agent might need to reference. One line each.
+
+Example:
+  src/lib/types/entities.ts — Property, Dimensions types and Zod schemas
+  src/lib/stores/materialized-state.svelte.ts — reactive state store (getProperties, dispatchEvent)
+  src/routes/+page.svelte — conditional render: form vs property header + canvas
+
+### 4. Established Patterns (real code snippets)
+Copy-paste a real example from the existing codebase showing:
+- How a test file is structured (imports, describe, beforeEach, test)
+- How a Svelte component is structured (script, markup, props)
+- How events are dispatched
+- How E2E tests work (setup, action, assertion)
+
+### 5. Framework Gotchas (from prior stories)
+Anything the PM learned from debugging previous stories. Be specific.
+
+Example:
+  - svelte-konva uses DIRECT PROPS on <Stage>, not a config object:
+    WRONG: <Stage config={{width: 100}}>
+    RIGHT: <Stage width={100} height={100} bind:node={stageRef}>
+  - Vitest needs `resolve.conditions: ['browser']` in vite.config.ts for Svelte 5
+  - Playwright runs against `npm run build && npm run preview` — `import.meta.env.DEV` is false
+
+### 6. Architecture Rules (compact)
+The essential naming/structure/anti-pattern rules. Not the full architecture doc —
+just the rules an agent needs to follow while writing code.
+```
+
+### Rules for the Context Brief:
+- **If an agent needs the exact shape to write code against it, include the shape** (copy-paste the type/signature)
+- **If an agent just needs to know something exists, include the path** (one-line description)
+- **Never summarize acceptance criteria** — always verbatim
+- **Include framework gotchas** discovered in prior stories — these save debug cycles
+- **Agents can still read specific files** if they need more detail — the brief is a starting point, not a cage
+
+---
+
 ## Phase 1: PLAN
 
 **Goal:** Produce a detailed implementation plan that the whole team agrees on.
 
 ### Step 1.1: Planner
-Spawn an Agent with the Planner role (read `./roles/planner.md` for the full prompt). Tell the planner:
-- The STORY_ID and path to the story spec file
-- To read the story spec, architecture doc, epics doc, prior completed stories, and current codebase
-- To produce the implementation plan as specified in the role definition
+Spawn an Agent with the Planner role (read `./roles/planner.md` for the full prompt). Give it:
+- The **context brief** from Phase 0
+- The path to the story spec file (so it can read the full spec including dev notes)
+- Instructions to produce the implementation plan
+
+The Planner can read additional files if the brief doesn't cover something, but it should NOT need to re-read the architecture doc, prior stories, or existing code — that's all in the brief.
 
 ### Step 1.2: Reviewer validates the plan
 Spawn an Agent with the Reviewer role (read `./roles/reviewer.md`, "Plan Review" section). Give it:
+- The **context brief** (so it knows the ACs and architecture rules)
 - The Planner's output (the implementation plan)
-- The story spec for reference
 
 ### Step 1.3: Gate decision
-Read the Reviewer's output.
 - If **APPROVE**: proceed to Phase 2. Summarize the plan for the user.
-- If **REVISE**: incorporate the Reviewer's feedback, spawn the Planner again with the feedback, then re-review. Maximum 2 revision cycles — after that, proceed with best effort and note unresolved concerns.
+- If **REVISE**: incorporate feedback, re-plan. Maximum 2 revision cycles.
 
 ---
 
@@ -41,11 +118,10 @@ Read the Reviewer's output.
 **Goal:** Write comprehensive failing tests before any implementation.
 
 ### Step 2.1: Tester writes tests
-Spawn an Agent with the Tester role (read `./roles/tester.md` for the full prompt). Give it:
-- The approved implementation plan from Phase 1
-- The story spec with acceptance criteria
-- Instructions to write BOTH vitest unit tests AND playwright E2E tests
-- The test plan from the Planner's output
+Spawn an Agent with the Tester role (read `./roles/tester.md`). Give it:
+- The **context brief** (includes ACs, API signatures, test patterns, gotchas)
+- The approved implementation plan from Phase 1 (includes test plan with AC/FR mapping)
+- The list of test files to create (from the plan)
 
 The Tester agent should WRITE the test files to disk.
 
@@ -55,21 +131,18 @@ Run the tests to confirm they fail:
 npx vitest run <new-test-files> 2>&1 | tail -20
 ```
 
-If tests fail because modules don't exist — that's correct (RED phase working).
-If tests fail for other reasons (syntax errors, bad imports of existing modules), fix the test files.
+If tests fail because modules don't exist — correct (RED phase).
+If tests fail for other reasons (syntax, bad imports) — fix the test files.
 
 ### Step 2.3: Reviewer validates tests
 Spawn an Agent with the Reviewer role. Give it:
-- All the new test files
-- The story spec ACs
-- Ask it to verify: every AC has both a vitest and playwright test, positive and negative cases are covered, tests are testing behavior not implementation
+- The **context brief** (ACs and FR references)
+- Paths to all new test files (let the reviewer READ them — test files are the deliverable)
+- Ask it to verify: AC coverage, positive/negative cases, traceability tags
 
 ### Step 2.4: Gate decision
-- If Reviewer says tests are comprehensive: proceed to Phase 3
-- If Reviewer identifies gaps: have the Tester write additional tests, then re-verify RED
-- Maximum 2 revision cycles
-
-Summarize for the user: how many vitest tests, how many playwright tests, AC coverage map.
+- Comprehensive: proceed to Phase 3
+- Gaps: Tester writes additional tests. Maximum 2 revision cycles.
 
 ---
 
@@ -78,10 +151,11 @@ Summarize for the user: how many vitest tests, how many playwright tests, AC cov
 **Goal:** Write the minimum code to make all tests pass.
 
 ### Step 3.1: Developer implements
-Spawn an Agent with the Developer role (read `./roles/developer.md` for the full prompt). Give it:
+Spawn an Agent with the Developer role (read `./roles/developer.md`). Give it:
+- The **context brief** (includes API signatures, architecture rules, gotchas)
 - The implementation plan from Phase 1
-- List of all test files (so it knows the contract)
-- The current codebase context
+- Paths to all test files (the contract)
+- Explicit instruction to READ the test files to understand the exact contract
 
 The Developer agent should WRITE the implementation files to disk.
 
@@ -97,19 +171,11 @@ npx playwright test 2>&1 | tail -20
 If tests fail:
 - Read the failure output
 - Determine if it's an implementation bug or a test issue
-- If implementation bug: have the Developer fix it (spawn again with error context)
-- If test issue: flag it and fix the test
+- If implementation bug: spawn the Developer again with the specific error and the relevant file context (not the whole brief — just what they need to fix)
 - Maximum 3 fix cycles
 
-All four commands must succeed before proceeding.
-
 ### Step 3.3: Gate decision
-- All vitest tests pass ✓
-- All playwright tests pass ✓
-- Lint passes ✓
-- Build succeeds ✓
-
-If all green: proceed to Phase 4. Report counts to user.
+All four commands must succeed before proceeding.
 
 ---
 
@@ -118,24 +184,20 @@ If all green: proceed to Phase 4. Report counts to user.
 **Goal:** Ensure the implementation meets quality standards.
 
 ### Step 4.1: Code review
-Spawn THREE Agents in parallel with the Reviewer role, each with a different focus:
-1. **Architecture reviewer** — three-tier state, domain separation, naming, anti-patterns
-2. **Test quality reviewer** — test coverage, assertion quality, missing edge cases
-3. **Security reviewer** — XSS, input validation, Zod schema bounds, privacy
+Spawn a **single Reviewer agent** (not three) that checks all three dimensions: architecture, test quality, and security. Give it:
+- The **context brief** (architecture rules section)
+- Paths to ALL new and modified files (let the reviewer READ them)
+- The story ACs for reference
 
-Give each reviewer ALL new and modified files.
+One reviewer is sufficient — three was wasteful. The reviewer role definition already covers all three perspectives.
 
 ### Step 4.2: Triage findings
-Collect all three reviews. Categorize findings:
-- **MUST FIX** — implement the fix immediately
-- **SHOULD FIX** — implement if straightforward, otherwise note for follow-up
+- **MUST FIX** — fix immediately, re-run tests
+- **SHOULD FIX** — fix if straightforward, otherwise note for follow-up
 - **CONSIDER** — skip unless trivial
 
-For MUST FIX items: make the changes, re-run tests to confirm still green.
-
 ### Step 4.3: Gate decision
-- If no MUST FIX items (or all fixed): proceed to Phase 5
-- Report review summary to user
+No MUST FIX items remaining → proceed to Phase 5.
 
 ---
 
@@ -151,11 +213,7 @@ For MUST FIX items: make the changes, re-run tests to confirm still green.
 ### Step 5.2: Create PR
 Create a PR targeting `main` with:
 - Title: `Story {STORY_ID}: {story title}`
-- Body with:
-  - Summary of what was implemented
-  - AC checklist (all checked)
-  - Test summary (vitest count, playwright count)
-  - Review summary (any SHOULD FIX items noted)
+- Body with summary, AC checklist, test counts, review notes
 
 ### Step 5.3: Track CI
 Watch the CI run. If it fails, diagnose and fix.
@@ -164,10 +222,11 @@ Watch the CI run. If it fails, diagnose and fix.
 
 ## Important Rules for the PM
 
-1. **Always summarize between phases** — tell the user what happened and what's next
-2. **Don't be a bottleneck** — if agents can run in parallel, run them in parallel
-3. **Respect the gates** — don't skip phases or rush through reviews
-4. **Keep context lean** — don't dump entire file contents between agents; summarize and point to file paths
-5. **Be transparent about issues** — if something is stuck, tell the user rather than looping silently
-6. **Maximum revision cycles** — never loop more than the specified max per phase to avoid infinite loops
-7. **Track progress with tasks** — create and update tasks so the user can see progress
+1. **Build the context brief ONCE in Phase 0** — this is your most important job. A good brief saves 3-4x tokens. A bad brief causes debug cycles.
+2. **Include exact code for APIs agents will call** — not descriptions, not paraphrases, the actual signatures copy-pasted from source.
+3. **Include framework gotchas** — check dependency `.d.ts` files in `node_modules/` for actual APIs before agents use them.
+4. **One reviewer in Phase 4** — not three. The reviewer role covers architecture, tests, and security already.
+5. **For fix cycles, give targeted context** — don't re-send the whole brief. Send the error message and the specific file that needs fixing.
+6. **Always summarize between phases** — tell the user what happened and what's next.
+7. **Maximum revision cycles** — 2 for plan/tests, 3 for implementation fixes.
+8. **Track progress with tasks** — create and update tasks so the user can see progress.
