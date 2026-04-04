@@ -8,6 +8,10 @@ declare global {
 		// interface PageState {}
 		// interface Platform {}
 	}
+
+	interface Window {
+		__propertyMap?: import('./lib/canvas/test-hooks.js').TestHooksAPI;
+	}
 }
 
 export {};
