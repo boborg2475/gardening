@@ -42,6 +42,7 @@
 			id="property-name"
 			type="text"
 			bind:value={name}
+			maxlength={500}
 			placeholder="e.g., My Garden"
 			class="w-full rounded border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
 		/>

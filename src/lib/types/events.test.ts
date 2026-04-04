@@ -9,6 +9,24 @@ const validBase = {
 };
 
 describe('PropertyCreatedSchema', () => {
+	it('accepts a name at exactly 500 characters', () => {
+		const result = PropertyCreatedSchema.safeParse({
+			...validBase,
+			type: 'PropertyCreated',
+			payload: { name: 'a'.repeat(500) }
+		});
+		expect(result.success).toBe(true);
+	});
+
+	it('rejects a name exceeding 500 characters', () => {
+		const result = PropertyCreatedSchema.safeParse({
+			...validBase,
+			type: 'PropertyCreated',
+			payload: { name: 'a'.repeat(501) }
+		});
+		expect(result.success).toBe(false);
+	});
+
 	it('rejects invalid dimension unit', () => {
 		const result = PropertyCreatedSchema.safeParse({
 			...validBase,
@@ -20,6 +38,15 @@ describe('PropertyCreatedSchema', () => {
 });
 
 describe('PropertyUpdatedSchema', () => {
+	it('rejects a name exceeding 500 characters in update', () => {
+		const result = PropertyUpdatedSchema.safeParse({
+			...validBase,
+			type: 'PropertyUpdated',
+			payload: { name: 'a'.repeat(501) }
+		});
+		expect(result.success).toBe(false);
+	});
+
 	it('accepts a valid update with dimensions', () => {
 		const result = PropertyUpdatedSchema.safeParse({
 			...validBase,

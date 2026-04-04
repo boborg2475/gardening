@@ -11,7 +11,7 @@ export const PropertyCreatedSchema = BaseEventSchema.extend({
 	type: z.literal('PropertyCreated'),
 	entityType: z.literal('property'),
 	payload: z.object({
-		name: z.string().min(1),
+		name: z.string().min(1).max(500),
 		dimensions: z
 			.object({
 				width: z.number().positive(),
@@ -26,7 +26,7 @@ export const PropertyUpdatedSchema = BaseEventSchema.extend({
 	type: z.literal('PropertyUpdated'),
 	entityType: z.literal('property'),
 	payload: z.object({
-		name: z.string().min(1).optional(),
+		name: z.string().min(1).max(500).optional(),
 		dimensions: z
 			.object({
 				width: z.number().positive(),

@@ -74,6 +74,15 @@ describe('createProperty', () => {
 		).rejects.toThrow();
 	});
 
+	it('accepts a name at exactly 500 characters', async () => {
+		const property = await createProperty({ name: 'a'.repeat(500) });
+		expect(property.name).toBe('a'.repeat(500));
+	});
+
+	it('rejects a name exceeding 500 characters', async () => {
+		await expect(createProperty({ name: 'a'.repeat(501) })).rejects.toThrow();
+	});
+
 	it('rejects invalid unit in dimensions', async () => {
 		await expect(
 			createProperty({
