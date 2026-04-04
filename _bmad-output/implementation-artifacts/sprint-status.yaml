@@ -1,0 +1,125 @@
+# generated: 2026-04-03
+# last_updated: 2026-04-03
+# project: gardening
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts
+
+# STATUS DEFINITIONS:
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# WORKFLOW NOTES:
+# ===============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows
+# - SM typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+
+generated: 2026-04-03
+last_updated: 2026-04-03
+project: gardening
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts
+
+development_status:
+  # Epic 1: Property Creation & Drawing Canvas
+  epic-1: in-progress
+  1-1-project-scaffold-and-core-architecture: review
+  1-2-event-store-and-property-data-model: backlog
+  1-3-property-creation: backlog
+  1-4-canvas-foundation-with-pan-and-zoom: backlog
+  1-5-polygon-drawing-tool: backlog
+  1-6-drawing-precision-tools: backlog
+  1-7-property-boundary-drawing-on-grid: backlog
+  epic-1-retrospective: optional
+
+  # Epic 2: Satellite Setup & Feature Detection
+  epic-2: backlog
+  2-1-network-boundary-module-and-tile-provider: backlog
+  2-2-satellite-image-tracing: backlog
+  2-3-assisted-feature-detection: backlog
+  2-4-feature-detection-catalog: backlog
+  2-5-edit-property-boundaries-after-creation: backlog
+  epic-2-retrospective: optional
+
+  # Epic 3: Zones, Entities & Garden Population
+  epic-3: backlog
+  3-1-zone-creation-and-nesting: backlog
+  3-2-structures-and-features: backlog
+  3-3-entity-creation-with-progressive-detail: backlog
+  3-4-plant-placement-single-drop: backlog
+  3-5-plant-placement-row-and-grid-tools: backlog
+  3-6-hierarchical-inheritance-and-overrides: backlog
+  epic-3-retrospective: optional
+
+  # Epic 4: Map Navigation & Visualization
+  epic-4: backlog
+  4-1-tap-to-zoom-and-breadcrumb-navigation: backlog
+  4-2-zone-contents-side-panel: backlog
+  4-3-depth-visibility-and-miniature-indicators: backlog
+  4-4-cluster-badges: backlog
+  4-5-zone-focus-mode: backlog
+  epic-4-retrospective: optional
+
+  # Epic 5: Activity Tracking & Quick Capture
+  epic-5: backlog
+  5-1-activity-logging: backlog
+  5-2-quick-capture-fab: backlog
+  5-3-hierarchical-classification-and-templates: backlog
+  5-4-harvest-logging: backlog
+  5-5-outbreak-tracking: backlog
+  5-6-entity-notes: backlog
+  epic-5-retrospective: optional
+
+  # Epic 6: Schedules & Daily Guide
+  epic-6: backlog
+  6-1-recurring-schedules: backlog
+  6-2-schedule-inheritance-and-overrides: backlog
+  6-3-daily-guide-core: backlog
+  6-4-severity-model-and-escalation: backlog
+  6-5-guide-grouping-and-scoping: backlog
+  6-6-task-completion-and-detail-logging: backlog
+  6-7-journal-reminders-and-rollover: backlog
+  epic-6-retrospective: optional
+
+  # Epic 7: History, Undo & Recovery
+  epic-7: backlog
+  7-1-undo-via-compensating-events: backlog
+  7-2-entity-event-history-view: backlog
+  7-3-soft-delete-and-restore: backlog
+  7-4-move-resize-and-reshape-entities: backlog
+  epic-7-retrospective: optional
+
+  # Epic 8: Privacy, Settings & Data Export
+  epic-8: backlog
+  8-1-privacy-dashboard-and-permission-toggles: backlog
+  8-2-location-permission-management: backlog
+  8-3-data-export-and-import: backlog
+  epic-8-retrospective: optional
+
+  # Epic 9: Onboarding & PWA
+  epic-9: backlog
+  9-1-guided-property-creation-flow: backlog
+  9-2-first-zone-prompt-and-re-enterable-flows: backlog
+  9-3-pwa-installation-and-offline-support: backlog
+  epic-9-retrospective: optional

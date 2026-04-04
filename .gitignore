@@ -137,3 +137,13 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+# SvelteKit build output
+build/
+
+# Playwright
+/test-results/
+/playwright-report/
+
+# My notes
+MY_NOTES.md
