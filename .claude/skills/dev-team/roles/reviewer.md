@@ -34,6 +34,7 @@ Read ALL new and modified files. Check from three perspectives:
 - Are assertions meaningful (not tautological)?
 - Is there a test for every AC?
 - Are async operations properly awaited?
+- **Traceability**: Is every test tagged with `AC#{number}` and `FR{number}`? Does the traceability matrix at the top of each test file account for all ACs? Flag any untagged tests or missing AC coverage.
 
 ### Security Check
 - No XSS vectors (no `{@html}`, user input properly escaped)
