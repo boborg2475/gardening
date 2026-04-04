@@ -13,7 +13,7 @@ export default defineConfig({
 		setupFiles: ['./vitest-setup.ts'],
 		coverage: {
 			all: true,
-			include: ['src/lib/**/*.{ts,svelte}'],
+			include: ['src/lib/**/*.ts'],
 			exclude: ['src/lib/**/*.test.ts', 'src/lib/**/*.d.ts'],
 			reporter: ['text', 'json-summary', 'json'],
 			reportOnFailure: true
