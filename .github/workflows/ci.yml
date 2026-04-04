@@ -20,11 +20,152 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
-      - run: npm run lint
+      - run: mkdir -p reports/playwright
+
+      - name: Lint
+        id: lint
+        run: npm run lint 2>&1 | tee reports/lint-output.txt
+        continue-on-error: true
+
       - run: npm run test:unit -- --coverage
+
       - run: npx playwright install --with-deps
       - run: npm run test:e2e
       - run: npm run build
+
+      - name: Post lint report to PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const lintPath = 'reports/lint-output.txt';
+
+            if (!fs.existsSync(lintPath)) {
+              console.log('No lint output found — skipping comment.');
+              return;
+            }
+
+            const output = fs.readFileSync(lintPath, 'utf8').trim();
+            const passed = '${{ steps.lint.outcome }}' === 'success';
+            const icon = passed ? '✅' : '❌';
+            const status = passed ? 'All checks passed' : 'Issues found';
+
+            const body = [
+              `## ${icon} Lint Report`,
+              '',
+              `**Status: ${status}**`,
+              '',
+              '```',
+              output.slice(0, 3000),
+              '```',
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const marker = '## ✅ Lint Report\n\n**Status: All checks passed**';
+            const markerFail = '## ❌ Lint Report';
+            const existing = comments.find(c => c.body?.startsWith(marker) || c.body?.startsWith(markerFail));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+      - name: Post Playwright report to PR
+        if: always()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'reports/playwright/results.json';
+
+            if (!fs.existsSync(path)) {
+              console.log('No Playwright report found — skipping comment.');
+              return;
+            }
+
+            const report = JSON.parse(fs.readFileSync(path, 'utf8'));
+            const suites = report.suites || [];
+
+            let passed = 0, failed = 0, skipped = 0;
+            const rows = [];
+
+            function processSuite(suite, prefix = '') {
+              for (const spec of (suite.specs || [])) {
+                for (const test of (spec.tests || [])) {
+                  const status = test.status;
+                  if (status === 'expected') passed++;
+                  else if (status === 'unexpected') failed++;
+                  else if (status === 'skipped') skipped++;
+
+                  const icon = status === 'expected' ? '✅' : status === 'unexpected' ? '❌' : '⏭️';
+                  const duration = test.results?.[0]?.duration ?? 0;
+                  rows.push(`| ${icon} | ${prefix}${spec.title} | ${duration}ms |`);
+                }
+              }
+              for (const child of (suite.suites || [])) {
+                processSuite(child, `${prefix}${suite.title} › `);
+              }
+            }
+
+            for (const suite of suites) {
+              processSuite(suite);
+            }
+
+            const total = passed + failed + skipped;
+            const icon = failed > 0 ? '❌' : '✅';
+            const status = failed > 0 ? `${failed} failed` : 'All passed';
+
+            const body = [
+              `## 🎭 Playwright E2E Report`,
+              '',
+              `**${icon} ${status}** — ${passed} passed, ${failed} failed, ${skipped} skipped out of ${total} tests`,
+              '',
+              '| | Test | Duration |',
+              '|---|------|----------|',
+              ...rows,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+
+            const marker = '## 🎭 Playwright E2E Report';
+            const existing = comments.find(c => c.body?.startsWith(marker));
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
 
       - name: Post coverage report to PR
         if: always()
