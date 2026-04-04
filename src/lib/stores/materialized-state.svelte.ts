@@ -49,6 +49,14 @@ export async function initialize(): Promise<void> {
 	loading = false;
 }
 
+/** Reset module state to initial values. For testing only. */
+export function _reset(): void {
+	state = createEmptyState();
+	initialized = false;
+	loading = true;
+	extendedReplay = false;
+}
+
 export async function dispatchEvent(
 	eventData: Omit<AppEvent, 'id' | 'timestamp'>
 ): Promise<AppEvent> {

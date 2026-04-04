@@ -55,7 +55,7 @@ describe('commitEvent', () => {
 				entityType: 'property',
 				payload: { name: '' } // empty name fails min(1)
 			} as never)
-		).rejects.toThrow();
+		).rejects.toThrow('Event validation failed');
 
 		const count = await db.events.count();
 		expect(count).toBe(0);
@@ -69,7 +69,7 @@ describe('commitEvent', () => {
 				entityType: 'property',
 				payload: { name: 'Garden' }
 			} as never)
-		).rejects.toThrow();
+		).rejects.toThrow('Event validation failed');
 
 		const count = await db.events.count();
 		expect(count).toBe(0);

@@ -8,13 +8,23 @@ import {
 	getProperty,
 	isInitialized,
 	isLoading,
-	isExtendedReplay
+	isExtendedReplay,
+	_reset
 } from './materialized-state.svelte.js';
+import { EXTENDED_REPLAY_THRESHOLD } from '../data/event-store.js';
 
 describe('materialized state', () => {
 	beforeEach(async () => {
+		_reset();
 		await db.delete();
 		await db.open();
+	});
+
+	it('has correct initial state before initialize', () => {
+		expect(isInitialized()).toBe(false);
+		expect(isLoading()).toBe(true);
+		expect(isExtendedReplay()).toBe(false);
+		expect(getProperties()).toEqual([]);
 	});
 
 	it('initializes with empty state', async () => {
@@ -22,6 +32,14 @@ describe('materialized state', () => {
 		expect(isInitialized()).toBe(true);
 		expect(isLoading()).toBe(false);
 		expect(getProperties()).toEqual([]);
+	});
+
+	it('sets loading true during initialization', async () => {
+		// After reset, loading is true (initial state)
+		expect(isLoading()).toBe(true);
+		await initialize();
+		// After initialize, loading is false
+		expect(isLoading()).toBe(false);
 	});
 
 	it('dispatches event and updates state', async () => {
@@ -58,7 +76,6 @@ describe('materialized state', () => {
 	it('restores state from persisted events on initialize', async () => {
 		const entityId = crypto.randomUUID();
 
-		// Commit directly to db (simulating previous session)
 		await db.events.add({
 			id: crypto.randomUUID(),
 			type: 'PropertyCreated',
@@ -78,10 +95,32 @@ describe('materialized state', () => {
 		expect(isExtendedReplay()).toBe(false);
 	});
 
-	it('loading transitions to false and initialized to true after initialize', async () => {
+	it('sets extendedReplay true when events exceed threshold', async () => {
+		// Seed enough events to exceed the threshold
+		const events = [];
+		const entityId = crypto.randomUUID();
+		events.push({
+			id: crypto.randomUUID(),
+			type: 'PropertyCreated' as const,
+			entityId,
+			entityType: 'property' as const,
+			timestamp: new Date(Date.now() - 100000).toISOString(),
+			payload: { name: 'Garden' }
+		});
+		for (let i = 0; i < EXTENDED_REPLAY_THRESHOLD; i++) {
+			events.push({
+				id: crypto.randomUUID(),
+				type: 'PropertyUpdated' as const,
+				entityId,
+				entityType: 'property' as const,
+				timestamp: new Date(Date.now() - 99999 + i).toISOString(),
+				payload: { name: `Garden ${i}` }
+			});
+		}
+		await db.events.bulkAdd(events);
+
 		await initialize();
-		expect(isLoading()).toBe(false);
-		expect(isInitialized()).toBe(true);
+		expect(isExtendedReplay()).toBe(true);
 	});
 
 	it('maintains immutability — dispatch produces new state objects', async () => {
