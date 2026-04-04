@@ -30,21 +30,18 @@ describe('DimensionsSchema', () => {
 
 describe('PropertySchema', () => {
 	it('accepts a minimal property', () => {
-		expect(
-			PropertySchema.safeParse({ id: crypto.randomUUID(), name: 'Garden' }).success
-		).toBe(true);
+		expect(PropertySchema.safeParse({ id: crypto.randomUUID(), name: 'Garden' }).success).toBe(
+			true
+		);
 	});
 
 	it('rejects empty property name', () => {
-		expect(
-			PropertySchema.safeParse({ id: crypto.randomUUID(), name: '' }).success
-		).toBe(false);
+		expect(PropertySchema.safeParse({ id: crypto.randomUUID(), name: '' }).success).toBe(false);
 	});
 
 	it('accepts a long property name', () => {
 		expect(
-			PropertySchema.safeParse({ id: crypto.randomUUID(), name: 'A very long garden name' })
-				.success
+			PropertySchema.safeParse({ id: crypto.randomUUID(), name: 'A very long garden name' }).success
 		).toBe(true);
 	});
 
