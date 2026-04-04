@@ -6,6 +6,7 @@ export default {
 		'src/lib/data/event-store.ts',
 		'src/lib/stores/materialized-state.svelte.ts',
 		'src/lib/types/**/*.ts',
+		'!src/lib/types/canvas.ts',
 		'!src/**/*.test.ts'
 	],
 	reporters: ['clear-text', 'html', 'json'],
