@@ -1,3 +1,10 @@
+/**
+ * Story 1.3: Property Creation
+ *
+ * Traceability:
+ * AC#4 (FR1) → all tests — property restored from event store via snapshot/replay after reload
+ */
+
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '../data/db.js';
@@ -9,7 +16,7 @@ import {
 } from '../stores/materialized-state.svelte.js';
 import { createProperty } from './property.js';
 
-describe('property persistence and reload', () => {
+describe('Story 1.3 AC#4: property persistence and reload (FR1)', () => {
 	beforeEach(async () => {
 		await db.delete();
 		await db.open();
@@ -34,7 +41,7 @@ describe('property persistence and reload', () => {
 		expect(properties[0].name).toBe('Persisted Garden');
 	});
 
-	it('restores a property with dimensions after re-initialization', async () => {
+	it('restores a property with dimensions after re-initialization (AC#4, FR1)', async () => {
 		const created = await createProperty({
 			name: 'Measured Garden',
 			dimensions: { width: 50, length: 100, unit: 'ft' }
@@ -49,7 +56,7 @@ describe('property persistence and reload', () => {
 		expect(restored!.dimensions).toEqual({ width: 50, length: 100, unit: 'ft' });
 	});
 
-	it('restores a property with undefined dimensions after re-initialization', async () => {
+	it('restores a property with undefined dimensions after re-initialization (AC#4, FR1)', async () => {
 		const created = await createProperty({ name: 'Simple Garden' });
 
 		_reset();

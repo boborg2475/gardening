@@ -1,26 +1,33 @@
+/**
+ * Story 1.2: Event Store & Property Data Model
+ *
+ * Traceability:
+ * AC#1 (FR1) → all tests — verifies properties, events, and snapshots tables exist with correct indexes
+ */
+
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from './db.js';
 
-describe('Dexie database schema', () => {
+describe('Story 1.2 AC#1: Dexie database schema (FR1)', () => {
 	beforeEach(async () => {
 		await db.delete();
 		await db.open();
 	});
 
-	it('has properties table', () => {
+	it('has properties table (AC#1, FR1)', () => {
 		expect(db.properties).toBeDefined();
 	});
 
-	it('has events table', () => {
+	it('has events table (AC#1, FR1)', () => {
 		expect(db.events).toBeDefined();
 	});
 
-	it('has snapshots table', () => {
+	it('has snapshots table (AC#1, FR1)', () => {
 		expect(db.snapshots).toBeDefined();
 	});
 
-	it('can store and retrieve a property', async () => {
+	it('can store and retrieve a property (AC#1, FR1)', async () => {
 		const property = {
 			id: crypto.randomUUID(),
 			name: 'Test Garden'
@@ -31,7 +38,7 @@ describe('Dexie database schema', () => {
 		expect(retrieved).toEqual(property);
 	});
 
-	it('can store and retrieve an event', async () => {
+	it('can store and retrieve an event (AC#1, FR1)', async () => {
 		const event = {
 			id: crypto.randomUUID(),
 			type: 'PropertyCreated' as const,
@@ -46,7 +53,7 @@ describe('Dexie database schema', () => {
 		expect(retrieved).toEqual(event);
 	});
 
-	it('can query events by entityId', async () => {
+	it('can query events by entityId (AC#1, FR1)', async () => {
 		const entityId = crypto.randomUUID();
 		const event1 = {
 			id: crypto.randomUUID(),
@@ -70,7 +77,7 @@ describe('Dexie database schema', () => {
 		expect(events).toHaveLength(2);
 	});
 
-	it('can store and retrieve a snapshot', async () => {
+	it('can store and retrieve a snapshot (AC#1, FR1)', async () => {
 		const snapshot = {
 			id: crypto.randomUUID(),
 			timestamp: new Date().toISOString(),

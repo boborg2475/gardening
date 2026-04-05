@@ -35,7 +35,7 @@
 # - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
 
 generated: 2026-04-03
-last_updated: 2026-04-03
+last_updated: 2026-04-04
 project: gardening
 project_key: NOKEY
 tracking_system: file-system
@@ -45,9 +45,9 @@ development_status:
   # Epic 1: Property Creation & Drawing Canvas
   epic-1: in-progress
   1-1-project-scaffold-and-core-architecture: done
-  1-2-event-store-and-property-data-model: review
-  1-3-property-creation: backlog
-  1-4-canvas-foundation-with-pan-and-zoom: backlog
+  1-2-event-store-and-property-data-model: done
+  1-3-property-creation: done
+  1-4-canvas-foundation-with-pan-and-zoom: done
   1-5-polygon-drawing-tool: backlog
   1-6-drawing-precision-tools: backlog
   1-7-property-boundary-drawing-on-grid: backlog

@@ -1,3 +1,13 @@
+/**
+ * Story 1.3: Property Creation (E2E)
+ *
+ * Traceability:
+ * AC#1 (FR1) → 'creates a property with name only and shows header (AC #1, #2)', 'shows validation error for empty name', 'shows validation error for whitespace-only name', 'prevents double-submit — form disappears after first creation' — property created with UUID, event committed, name displayed
+ * AC#2 (FR1) → 'creates a property with name only and shows header (AC #1, #2)', 'creates property with undefined dimensions when only width is provided', 'creates property with undefined dimensions when only length is provided' — progressive detail, partial dims silently dropped
+ * AC#3 (FR1) → 'creates a property with name and dimensions (AC #3)', 'creates a property with metric dimensions', 'name input enforces 500 character maxlength' — dimensions stored and displayed
+ * AC#4 (FR1) → 'property survives page reload (AC #4)', 'property without dimensions survives reload (AC #4)' — persistence via event store
+ */
+
 import { expect, test } from '@playwright/test';
 
 test.describe('Property Creation', () => {
@@ -29,7 +39,7 @@ test.describe('Property Creation', () => {
 		await expect(page.getByText('50 × 100 ft')).toBeVisible();
 	});
 
-	test('creates a property with metric dimensions', async ({ page }) => {
+	test('creates a property with metric dimensions (AC#3, FR1)', async ({ page }) => {
 		await page.getByLabel(/property name/i).fill('Jardin');
 		await page.getByLabel(/width/i).fill('15');
 		await page.getByLabel(/length/i).fill('30');
@@ -41,7 +51,7 @@ test.describe('Property Creation', () => {
 		await expect(page.getByText('15 × 30 m')).toBeVisible();
 	});
 
-	test('shows validation error for empty name', async ({ page }) => {
+	test('shows validation error for empty name (AC#1, FR1)', async ({ page }) => {
 		await page.getByRole('button', { name: /create property/i }).click();
 
 		await expect(page.getByText(/name is required/i)).toBeVisible();
@@ -67,7 +77,7 @@ test.describe('Property Creation', () => {
 		await expect(page.getByRole('heading', { name: /create your property/i })).not.toBeVisible();
 	});
 
-	test('shows validation error for whitespace-only name', async ({ page }) => {
+	test('shows validation error for whitespace-only name (AC#1, FR1)', async ({ page }) => {
 		await page.getByLabel(/property name/i).fill('   ');
 		await page.getByRole('button', { name: /create property/i }).click();
 
@@ -75,7 +85,7 @@ test.describe('Property Creation', () => {
 		await expect(page.getByRole('heading', { name: /create your property/i })).toBeVisible();
 	});
 
-	test('creates property with undefined dimensions when only width is provided', async ({
+	test('creates property with undefined dimensions when only width is provided (AC#2, FR1)', async ({
 		page
 	}) => {
 		await page.getByLabel(/property name/i).fill('Partial Dims');
@@ -90,7 +100,7 @@ test.describe('Property Creation', () => {
 		await expect(page.getByText(/×/)).not.toBeVisible();
 	});
 
-	test('creates property with undefined dimensions when only length is provided', async ({
+	test('creates property with undefined dimensions when only length is provided (AC#2, FR1)', async ({
 		page
 	}) => {
 		await page.getByLabel(/property name/i).fill('Partial Dims 2');
@@ -103,7 +113,7 @@ test.describe('Property Creation', () => {
 		await expect(page.getByText(/×/)).not.toBeVisible();
 	});
 
-	test('name input enforces 500 character maxlength', async ({ page }) => {
+	test('name input enforces 500 character maxlength (AC#3, FR1)', async ({ page }) => {
 		const nameInput = page.getByLabel(/property name/i);
 		const longName = 'a'.repeat(600);
 
@@ -114,7 +124,9 @@ test.describe('Property Creation', () => {
 		expect(value.length).toBeLessThanOrEqual(500);
 	});
 
-	test('prevents double-submit — form disappears after first creation', async ({ page }) => {
+	test('prevents double-submit — form disappears after first creation (AC#1, FR1)', async ({
+		page
+	}) => {
 		await page.getByLabel(/property name/i).fill('No Duplicates');
 
 		await page.getByRole('button', { name: /create property/i }).click();
