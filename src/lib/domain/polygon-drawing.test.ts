@@ -8,6 +8,15 @@
  * AC#4 (FR4)  -> 'updatePreview sets previewPosition when in placing mode', 'updatePreview clears when mode is not placing'
  * AC#5 (FR4)  -> 'commitPolygon dispatches PolygonDrawn event with correct points', 'commitPolygon returns the committed event'
  * Edge cases  -> 'addPoint is a no-op when mode is idle', 'addPoint is a no-op when mode is complete', 'closePolygon is a no-op with fewer than 3 points', 'isNearFirstPoint returns false with fewer than 3 points', 'cancelDrawing resets to initial state', 'state transitions are immutable'
+ *
+ * Story 1.6: Drawing Precision Tools
+ *
+ * Traceability:
+ * AC#1 (FR14) -> 'toggleSegmentCurve converts line segment to curve with control point at midpoint', 'toggleSegmentCurve converts curve segment back to line', 'getDefaultControlPoint returns midpoint of two points'
+ * AC#2 (FR15) -> 'updateCurveControl updates control point for curve segment', 'updateCurveControl is no-op for line segment'
+ * AC#6 (FR19) -> 'enterConfirmation transitions from complete to confirming', 'enterConfirmation clones points and segments into confirmation fields', 'confirmPolygon copies confirmation data back and transitions to complete', 'cancelConfirmation discards edits and returns to complete with original data'
+ * AC#7 (FR19) -> 'adjustConfirmationPoint updates a single confirmation point', 'adjustConfirmationPoint preserves other confirmation points'
+ * Segments    -> 'startDrawing initializes empty segments array', 'addPoint appends line segment for points after the first', 'segments array length equals points length minus one', 'closePolygon preserves segments'
  */
 
 import 'fake-indexeddb/auto';
@@ -22,9 +31,16 @@ import {
 	closePolygon,
 	cancelDrawing,
 	commitPolygon,
-	INITIAL_DRAWING_STATE
+	INITIAL_DRAWING_STATE,
+	toggleSegmentCurve,
+	updateCurveControl,
+	getDefaultControlPoint,
+	enterConfirmation,
+	adjustConfirmationPoint,
+	confirmPolygon,
+	cancelConfirmation
 } from './polygon-drawing.js';
-import type { DrawingState, DrawingMode } from './polygon-drawing.js';
+import type { DrawingState, DrawingMode, SegmentMeta } from './polygon-drawing.js';
 
 describe('Story 1.5 AC#1: startDrawing and addPoint (FR13)', () => {
 	it('INITIAL_DRAWING_STATE has idle mode with empty points (AC#1, FR13)', () => {
@@ -295,5 +311,325 @@ describe('Story 1.5 Edge cases: polygon-drawing state machine', () => {
 
 		const closed = closePolygon(state);
 		expect(closed).not.toBe(state);
+	});
+});
+
+// ──────────────────────────────────────────────────────────────
+// Story 1.6: Drawing Precision Tools — Segments invariant
+// ──────────────────────────────────────────────────────────────
+
+describe('Story 1.6 Segments invariant: segments array synchronized with points', () => {
+	it('startDrawing initializes empty segments array (AC#1, FR14)', () => {
+		const state = startDrawing();
+		expect(state.segments).toBeDefined();
+		expect(state.segments).toEqual([]);
+	});
+
+	it('addPoint does not append a segment for the first point (AC#1, FR14)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+
+		expect(state.points).toHaveLength(1);
+		expect(state.segments).toHaveLength(0);
+	});
+
+	it('addPoint appends a line segment for the second point onward (AC#1, FR14)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+
+		expect(state.segments).toHaveLength(1);
+		expect(state.segments[0]).toEqual({ type: 'line' });
+	});
+
+	it('segments array length equals points length minus one for 3+ points (AC#1, FR14)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+
+		expect(state.points).toHaveLength(3);
+		expect(state.segments).toHaveLength(2);
+		expect(state.segments.every((s: SegmentMeta) => s.type === 'line')).toBe(true);
+	});
+
+	it('closePolygon preserves segments (AC#1, FR14)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+
+		const closed = closePolygon(state);
+		expect(closed.segments).toHaveLength(2);
+		expect(closed.segments[0]).toEqual({ type: 'line' });
+	});
+
+	it('segments array is immutably copied on addPoint (AC#1, FR14)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		const state2 = addPoint(state, { x: 100, y: 0 });
+
+		expect(state.segments).not.toBe(state2.segments);
+		expect(state.segments).toHaveLength(0);
+		expect(state2.segments).toHaveLength(1);
+	});
+});
+
+// ──────────────────────────────────────────────────────────────
+// Story 1.6 AC#1: toggleSegmentCurve and getDefaultControlPoint (FR14)
+// ──────────────────────────────────────────────────────────────
+
+describe('Story 1.6 AC#1: toggleSegmentCurve and getDefaultControlPoint (FR14)', () => {
+	it('getDefaultControlPoint returns midpoint of two points (AC#1, FR14)', () => {
+		const cp = getDefaultControlPoint({ x: 0, y: 0 }, { x: 100, y: 200 });
+		expect(cp).toEqual({ x: 50, y: 100 });
+	});
+
+	it('getDefaultControlPoint handles negative coordinates (AC#1, FR14)', () => {
+		const cp = getDefaultControlPoint({ x: -10, y: -20 }, { x: 10, y: 20 });
+		expect(cp).toEqual({ x: 0, y: 0 });
+	});
+
+	it('getDefaultControlPoint handles identical points (AC#1, FR14)', () => {
+		const cp = getDefaultControlPoint({ x: 50, y: 50 }, { x: 50, y: 50 });
+		expect(cp).toEqual({ x: 50, y: 50 });
+	});
+
+	it('toggleSegmentCurve converts line segment to curve with control point at midpoint (AC#1, FR14)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		state = closePolygon(state);
+
+		const toggled = toggleSegmentCurve(state, 0);
+		expect(toggled.segments[0].type).toBe('curve');
+		expect(toggled.segments[0].controlPoint).toEqual({ x: 50, y: 0 });
+	});
+
+	it('toggleSegmentCurve converts curve segment back to line (AC#1, FR14)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		state = closePolygon(state);
+
+		// Toggle to curve, then back to line
+		let toggled = toggleSegmentCurve(state, 0);
+		toggled = toggleSegmentCurve(toggled, 0);
+		expect(toggled.segments[0].type).toBe('line');
+		expect(toggled.segments[0].controlPoint).toBeUndefined();
+	});
+
+	it('toggleSegmentCurve does not affect other segments (AC#1, FR14)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		state = closePolygon(state);
+
+		const toggled = toggleSegmentCurve(state, 0);
+		expect(toggled.segments[1].type).toBe('line');
+	});
+
+	it('toggleSegmentCurve returns new state object (AC#1, FR14)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		state = closePolygon(state);
+
+		const toggled = toggleSegmentCurve(state, 0);
+		expect(toggled).not.toBe(state);
+		expect(toggled.segments).not.toBe(state.segments);
+	});
+});
+
+// ──────────────────────────────────────────────────────────────
+// Story 1.6 AC#2: updateCurveControl (FR15)
+// ──────────────────────────────────────────────────────────────
+
+describe('Story 1.6 AC#2: updateCurveControl (FR15)', () => {
+	it('updateCurveControl updates control point for curve segment (AC#2, FR15)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		state = closePolygon(state);
+		state = toggleSegmentCurve(state, 0);
+
+		const updated = updateCurveControl(state, 0, { x: 30, y: -20 });
+		expect(updated.segments[0].controlPoint).toEqual({ x: 30, y: -20 });
+	});
+
+	it('updateCurveControl is no-op for line segment (AC#2, FR15)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		state = closePolygon(state);
+
+		const updated = updateCurveControl(state, 0, { x: 30, y: -20 });
+		expect(updated.segments[0].type).toBe('line');
+		expect(updated.segments[0].controlPoint).toBeUndefined();
+	});
+
+	it('updateCurveControl preserves other segments (AC#2, FR15)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		state = closePolygon(state);
+		state = toggleSegmentCurve(state, 0);
+
+		const updated = updateCurveControl(state, 0, { x: 30, y: -20 });
+		expect(updated.segments[1].type).toBe('line');
+	});
+
+	it('updateCurveControl returns new state object (AC#2, FR15)', () => {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		state = closePolygon(state);
+		state = toggleSegmentCurve(state, 0);
+
+		const updated = updateCurveControl(state, 0, { x: 30, y: -20 });
+		expect(updated).not.toBe(state);
+	});
+});
+
+// ──────────────────────────────────────────────────────────────
+// Story 1.6 AC#6: Two-stage confirmation (FR19)
+// ──────────────────────────────────────────────────────────────
+
+describe('Story 1.6 AC#6: enterConfirmation, confirmPolygon, cancelConfirmation (FR19)', () => {
+	function buildCompletedPolygon(): DrawingState {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		return closePolygon(state);
+	}
+
+	it('enterConfirmation transitions from complete to confirming (AC#6, FR19)', () => {
+		const completed = buildCompletedPolygon();
+		const confirming = enterConfirmation(completed);
+
+		expect(confirming.mode).toBe('confirming');
+	});
+
+	it('enterConfirmation clones points into confirmationPoints (AC#6, FR19)', () => {
+		const completed = buildCompletedPolygon();
+		const confirming = enterConfirmation(completed);
+
+		expect(confirming.confirmationPoints).toBeDefined();
+		expect(confirming.confirmationPoints).toEqual(completed.points);
+		// Must be a deep clone, not the same reference
+		expect(confirming.confirmationPoints).not.toBe(completed.points);
+	});
+
+	it('enterConfirmation clones segments into confirmationSegments (AC#6, FR19)', () => {
+		const completed = buildCompletedPolygon();
+		const confirming = enterConfirmation(completed);
+
+		expect(confirming.confirmationSegments).toBeDefined();
+		expect(confirming.confirmationSegments).toEqual(completed.segments);
+		expect(confirming.confirmationSegments).not.toBe(completed.segments);
+	});
+
+	it('enterConfirmation is no-op when mode is not complete (AC#6, FR19)', () => {
+		const placing = startDrawing();
+		const result = enterConfirmation(placing);
+
+		expect(result.mode).toBe('placing');
+		expect(result.confirmationPoints).toBeUndefined();
+	});
+
+	it('confirmPolygon copies confirmation data back to points/segments (AC#6, FR19)', () => {
+		const completed = buildCompletedPolygon();
+		let confirming = enterConfirmation(completed);
+		// Adjust a point in confirmation
+		confirming = adjustConfirmationPoint(confirming, 0, { x: 10, y: 10 });
+
+		const confirmed = confirmPolygon(confirming);
+		expect(confirmed.mode).toBe('complete');
+		expect(confirmed.points[0]).toEqual({ x: 10, y: 10 });
+		expect(confirmed.confirmationPoints).toBeUndefined();
+		expect(confirmed.confirmationSegments).toBeUndefined();
+	});
+
+	it('cancelConfirmation discards edits and returns to complete with original data (AC#6, FR19)', () => {
+		const completed = buildCompletedPolygon();
+		let confirming = enterConfirmation(completed);
+		confirming = adjustConfirmationPoint(confirming, 0, { x: 999, y: 999 });
+
+		const cancelled = cancelConfirmation(confirming);
+		expect(cancelled.mode).toBe('complete');
+		expect(cancelled.points).toEqual(completed.points);
+		expect(cancelled.confirmationPoints).toBeUndefined();
+		expect(cancelled.confirmationSegments).toBeUndefined();
+	});
+
+	it('confirmPolygon returns new state object (AC#6, FR19)', () => {
+		const completed = buildCompletedPolygon();
+		const confirming = enterConfirmation(completed);
+		const confirmed = confirmPolygon(confirming);
+
+		expect(confirmed).not.toBe(confirming);
+	});
+
+	it('cancelConfirmation returns new state object (AC#6, FR19)', () => {
+		const completed = buildCompletedPolygon();
+		const confirming = enterConfirmation(completed);
+		const cancelled = cancelConfirmation(confirming);
+
+		expect(cancelled).not.toBe(confirming);
+	});
+});
+
+// ──────────────────────────────────────────────────────────────
+// Story 1.6 AC#7: adjustConfirmationPoint (FR19)
+// ──────────────────────────────────────────────────────────────
+
+describe('Story 1.6 AC#7: adjustConfirmationPoint (FR19)', () => {
+	function buildConfirmingPolygon(): DrawingState {
+		let state = startDrawing();
+		state = addPoint(state, { x: 0, y: 0 });
+		state = addPoint(state, { x: 100, y: 0 });
+		state = addPoint(state, { x: 100, y: 100 });
+		state = closePolygon(state);
+		return enterConfirmation(state);
+	}
+
+	it('adjustConfirmationPoint updates a single confirmation point (AC#7, FR19)', () => {
+		const confirming = buildConfirmingPolygon();
+		const adjusted = adjustConfirmationPoint(confirming, 1, { x: 150, y: 50 });
+
+		expect(adjusted.confirmationPoints![1]).toEqual({ x: 150, y: 50 });
+	});
+
+	it('adjustConfirmationPoint preserves other confirmation points (AC#7, FR19)', () => {
+		const confirming = buildConfirmingPolygon();
+		const adjusted = adjustConfirmationPoint(confirming, 1, { x: 150, y: 50 });
+
+		expect(adjusted.confirmationPoints![0]).toEqual({ x: 0, y: 0 });
+		expect(adjusted.confirmationPoints![2]).toEqual({ x: 100, y: 100 });
+	});
+
+	it('adjustConfirmationPoint does not modify original points (AC#7, FR19)', () => {
+		const confirming = buildConfirmingPolygon();
+		const adjusted = adjustConfirmationPoint(confirming, 0, { x: 999, y: 999 });
+
+		// Original points should be unchanged
+		expect(adjusted.points[0]).toEqual({ x: 0, y: 0 });
+	});
+
+	it('adjustConfirmationPoint returns new state object (AC#7, FR19)', () => {
+		const confirming = buildConfirmingPolygon();
+		const adjusted = adjustConfirmationPoint(confirming, 0, { x: 50, y: 50 });
+
+		expect(adjusted).not.toBe(confirming);
+		expect(adjusted.confirmationPoints).not.toBe(confirming.confirmationPoints);
 	});
 });
