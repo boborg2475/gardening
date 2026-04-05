@@ -19,6 +19,7 @@ import {
 	type DrawingMode,
 	type SegmentMeta
 } from '../domain/polygon-drawing.js';
+import { commitPropertyBoundary } from '../domain/property.js';
 
 export interface DrawingStore {
 	readonly mode: DrawingMode;
@@ -35,6 +36,7 @@ export interface DrawingStore {
 	close(): void;
 	cancel(): void;
 	finalize(entityId: string, entityType: string): Promise<AppEvent>;
+	finalizeAsBoundary(propertyId: string): Promise<AppEvent>;
 	toggleSegmentCurve(segmentIndex: number): void;
 	updateCurveControl(segmentIndex: number, controlPoint: Point): void;
 	enterConfirmation(): void;
@@ -88,6 +90,11 @@ export function createDrawingStore(): DrawingStore {
 		},
 		async finalize(entityId: string, entityType: string): Promise<AppEvent> {
 			const event = await commitPolygon(dispatchEvent, entityId, drawingState.points, entityType);
+			drawingState = { ...INITIAL_DRAWING_STATE };
+			return event;
+		},
+		async finalizeAsBoundary(propertyId: string): Promise<AppEvent> {
+			const event = await commitPropertyBoundary(dispatchEvent, propertyId, drawingState.points);
 			drawingState = { ...INITIAL_DRAWING_STATE };
 			return event;
 		},

@@ -35,6 +35,9 @@ export interface TestHooksAPI {
 	confirmPolygon(): void;
 	cancelConfirmation(): void;
 	adjustConfirmationPoint(index: number, point: Point): void;
+	finalizeAsBoundary(): Promise<void>;
+	getBoundaryState(): { rendered: boolean; points: { x: number; y: number }[] };
+	getNorthIndicatorState(): { visible: boolean; degrees: number | undefined };
 }
 
 export interface SetupTestHooksParams {
@@ -127,6 +130,29 @@ export function setupTestHooks(params: SetupTestHooksParams): void {
 		},
 		adjustConfirmationPoint(index, point) {
 			drawingStore?.adjustConfirmationPoint(index, point);
+		},
+		async finalizeAsBoundary() {
+			if (!drawingStore || !getPropertiesFn) return;
+			const properties = getPropertiesFn();
+			if (properties.length > 0) {
+				await drawingStore.finalizeAsBoundary(properties[0].id);
+			}
+		},
+		getBoundaryState() {
+			const properties = getPropertiesFn ? getPropertiesFn() : [];
+			const property = properties[0];
+			if (!property || !property.geometry) {
+				return { rendered: false, points: [] };
+			}
+			return { rendered: true, points: property.geometry.points };
+		},
+		getNorthIndicatorState() {
+			const properties = getPropertiesFn ? getPropertiesFn() : [];
+			const property = properties[0];
+			return {
+				visible: property?.northOrientation !== undefined,
+				degrees: property?.northOrientation
+			};
 		}
 	};
 

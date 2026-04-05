@@ -218,6 +218,14 @@
 		return navigationContext;
 	}
 
+	export function startBoundaryDrawing() {
+		drawingStore.start();
+	}
+
+	export function getDrawingMode() {
+		return drawingStore.mode;
+	}
+
 	onMount(() => {
 		if (!containerEl) return;
 

@@ -47,13 +47,33 @@ export const PolygonDrawnSchema = BaseEventSchema.extend({
 	})
 });
 
+export const PropertyBoundarySetSchema = BaseEventSchema.extend({
+	type: z.literal('PropertyBoundarySet'),
+	entityType: z.literal('property'),
+	payload: z.object({
+		points: z.array(PointSchema).min(3).max(10000)
+	})
+});
+
+export const NorthOrientationSetSchema = BaseEventSchema.extend({
+	type: z.literal('NorthOrientationSet'),
+	entityType: z.literal('property'),
+	payload: z.object({
+		degrees: z.number().min(0).max(359)
+	})
+});
+
 export const EventSchema = z.discriminatedUnion('type', [
 	PropertyCreatedSchema,
 	PropertyUpdatedSchema,
-	PolygonDrawnSchema
+	PolygonDrawnSchema,
+	PropertyBoundarySetSchema,
+	NorthOrientationSetSchema
 ]);
 
 export type AppEvent = z.infer<typeof EventSchema>;
 export type PropertyCreatedEvent = z.infer<typeof PropertyCreatedSchema>;
 export type PropertyUpdatedEvent = z.infer<typeof PropertyUpdatedSchema>;
 export type PolygonDrawnEvent = z.infer<typeof PolygonDrawnSchema>;
+export type PropertyBoundarySetEvent = z.infer<typeof PropertyBoundarySetSchema>;
+export type NorthOrientationSetEvent = z.infer<typeof NorthOrientationSetSchema>;
