@@ -35,8 +35,9 @@
 	</main>
 {:else}
 	{@const property = getProperties()[0]}
+	<div class="flex h-screen flex-col">
 	<PropertyHeader {property} />
-	<div class="relative" style="height: calc(100vh - 4rem);">
+	<div class="relative min-h-0 flex-1">
 		<div class="absolute top-2 right-2 z-10 flex items-center gap-2">
 			<button
 				class="rounded bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
@@ -50,7 +51,7 @@
 				onchange={handleGridScaleChange}
 			/>
 		</div>
-		<div class="absolute bottom-2 left-2 z-10 flex items-center gap-2">
+		<div class="absolute bottom-4 left-2 z-10 flex items-center gap-2">
 			<label class="text-sm font-medium" for="north-orientation">North Orientation</label>
 			<input
 				id="north-orientation"
@@ -69,5 +70,6 @@
 			</button>
 		</div>
 		<PropertyMap bind:this={propertyMapRef} {property} />
+	</div>
 	</div>
 {/if}

@@ -6,12 +6,13 @@
 		createNavigationContext,
 		getDefaultGridScale
 	} from '../../stores/navigation-context.svelte.js';
-	import { calculateGridLines } from './grid-renderer.js';
+	import { calculateGridLines, getPropertyBounds } from './grid-renderer.js';
 	import {
 		calculateWheelZoom,
 		calculatePinchZoom,
 		getDistanceBetweenPoints,
-		getMidpoint
+		getMidpoint,
+		clampPanOffset
 	} from '../navigation/pan-zoom-utils.js';
 	import { setupTestHooks } from '../test-hooks.js';
 	import type { GridScale } from '../../types/canvas.js';
@@ -41,6 +42,9 @@
 	let containerHeight = $state(600);
 	let stageNode: unknown = $state(undefined);
 	let lastPinchDistance = 0;
+	let isPanning = false;
+	let panStart = { x: 0, y: 0 };
+	let didPan = false;
 
 	const stageWidth = $derived(containerWidth);
 	const stageHeight = $derived(containerHeight);
@@ -48,13 +52,22 @@
 	const stageScaleY = $derived(navigationContext.zoomLevel);
 	const stageX = $derived(navigationContext.panOffset.x);
 	const stageY = $derived(navigationContext.panOffset.y);
+
+	// Property bounds in canvas-space pixels
+	const propertyBounds = $derived(
+		property.dimensions
+			? getPropertyBounds(property.dimensions)
+			: undefined
+	);
+
 	const gridLines = $derived(
 		calculateGridLines({
 			canvasWidth: containerWidth,
 			canvasHeight: containerHeight,
 			gridScale: navigationContext.gridScale,
 			zoom: navigationContext.zoomLevel,
-			panOffset: navigationContext.panOffset
+			panOffset: navigationContext.panOffset,
+			propertyBounds
 		})
 	);
 
@@ -78,8 +91,6 @@
 		drawingStore.mode === 'complete' ? drawingStore.points.flatMap((p) => [p.x, p.y]) : []
 	);
 
-	const isDraggableOrConfirming = $derived(!drawingStore.isActive && !drawingStore.isConfirming);
-
 	// Set up test hooks immediately with a proxy that reads current state
 	setupTestHooks({
 		stage: {
@@ -93,19 +104,41 @@
 		precisionToolsStore
 	});
 
-	function handleDragEnd(e: unknown) {
-		// svelte-konva passes the Konva event object
-		const evt = e as { target?: { x(): number; y(): number } };
-		const target = evt?.target;
-		if (target && typeof target.x === 'function') {
-			navigationContext.setPanOffset({
-				x: target.x(),
-				y: target.y()
-			});
+	function applyClampedPan(offset: { x: number; y: number }) {
+		if (!propertyBounds) {
+			navigationContext.setPanOffset(offset);
+			return;
 		}
+		const clamped = clampPanOffset({
+			panOffset: offset,
+			zoom: navigationContext.zoomLevel,
+			viewportWidth: containerWidth,
+			viewportHeight: containerHeight,
+			boundsLeft: propertyBounds.left,
+			boundsTop: propertyBounds.top,
+			boundsRight: propertyBounds.right,
+			boundsBottom: propertyBounds.bottom
+		});
+		navigationContext.setPanOffset(clamped);
+	}
+
+	function handleMouseDown(e: MouseEvent) {
+		if (drawingStore.isActive || drawingStore.isConfirming) return;
+		isPanning = true;
+		didPan = false;
+		panStart = { x: e.clientX, y: e.clientY };
+	}
+
+	function handleMouseUp() {
+		isPanning = false;
 	}
 
 	function handleCanvasClick(e: MouseEvent) {
+		// Suppress click after a pan drag
+		if (didPan) {
+			didPan = false;
+			return;
+		}
 		log.debug('click — mode:', drawingStore.mode, 'isActive:', drawingStore.isActive);
 		if (!drawingStore.isActive || !containerEl) return;
 
@@ -139,7 +172,23 @@
 	}
 
 	function handleCanvasMouseMove(e: MouseEvent) {
-		if (!drawingStore.isActive || !containerEl) return;
+		if (!containerEl) return;
+
+		// Handle panning
+		if (isPanning) {
+			const dx = e.clientX - panStart.x;
+			const dy = e.clientY - panStart.y;
+			if (dx !== 0 || dy !== 0) didPan = true;
+			panStart = { x: e.clientX, y: e.clientY };
+			applyClampedPan({
+				x: navigationContext.panOffset.x + dx,
+				y: navigationContext.panOffset.y + dy
+			});
+			return;
+		}
+
+		// Handle drawing preview
+		if (!drawingStore.isActive) return;
 
 		const rect = containerEl.getBoundingClientRect();
 		const screenPoint = {
@@ -173,7 +222,7 @@
 		});
 
 		navigationContext.setZoomLevel(result.newZoom);
-		navigationContext.setPanOffset(result.newPosition);
+		applyClampedPan(result.newPosition);
 	}
 
 	function handleTouchMove(e: TouchEvent) {
@@ -202,7 +251,7 @@
 		});
 
 		navigationContext.setZoomLevel(result.newZoom);
-		navigationContext.setPanOffset(result.newPosition);
+		applyClampedPan(result.newPosition);
 		lastPinchDistance = currentDistance;
 	}
 
@@ -258,6 +307,9 @@
 	ontouchmove={handleTouchMove}
 	ontouchend={handleTouchEnd}
 	onclick={handleCanvasClick}
+	onmousedown={handleMouseDown}
+	onmouseup={handleMouseUp}
+	onmouseleave={handleMouseUp}
 	onmousemove={handleCanvasMouseMove}
 >
 	<Stage
@@ -267,9 +319,7 @@
 		scaleY={stageScaleY}
 		x={stageX}
 		y={stageY}
-		draggable={isDraggableOrConfirming}
 		bind:node={stageNode}
-		ondragend={handleDragEnd}
 	>
 		<Layer listening={false}>
 			{#each gridLines as line (line.points.join(',') + line.isMajor)}
