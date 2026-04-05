@@ -5,7 +5,14 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { calculateGridLines, getPropertyCanvasSize, type GridLineConfig } from './grid-renderer.js';
+import {
+	calculateGridLines,
+	getPropertyCanvasSize,
+	getPropertyBounds,
+	type GridLineConfig,
+	type CanvasBounds
+} from './grid-renderer.js';
+import { BASE_PIXELS_PER_FOOT, BASE_PIXELS_PER_METER } from '../../types/canvas.js';
 
 describe('Story 1.4 AC#1: calculateGridLines basic behavior (FR5)', () => {
 	it('returns grid lines for basic parameters (AC#1, FR5)', () => {
@@ -184,5 +191,94 @@ describe('Story 1.4 AC#1: getPropertyCanvasSize (FR5)', () => {
 			panOffset: { x: 0, y: 0 }
 		});
 		expect(lines).toEqual([]);
+	});
+});
+
+describe('getPropertyBounds', () => {
+	it('converts imperial dimensions to canvas-space pixel bounds', () => {
+		const bounds = getPropertyBounds({ width: 50, length: 100, unit: 'ft' });
+		expect(bounds.left).toBe(0);
+		expect(bounds.top).toBe(0);
+		expect(bounds.right).toBe(50 * BASE_PIXELS_PER_FOOT);
+		expect(bounds.bottom).toBe(100 * BASE_PIXELS_PER_FOOT);
+	});
+
+	it('converts metric dimensions to canvas-space pixel bounds', () => {
+		const bounds = getPropertyBounds({ width: 20, length: 30, unit: 'm' });
+		expect(bounds.left).toBe(0);
+		expect(bounds.top).toBe(0);
+		expect(bounds.right).toBeCloseTo(20 * BASE_PIXELS_PER_METER);
+		expect(bounds.bottom).toBeCloseTo(30 * BASE_PIXELS_PER_METER);
+	});
+
+	it('small property produces small bounds', () => {
+		const bounds = getPropertyBounds({ width: 1, length: 1, unit: 'ft' });
+		expect(bounds.right).toBe(BASE_PIXELS_PER_FOOT);
+		expect(bounds.bottom).toBe(BASE_PIXELS_PER_FOOT);
+	});
+});
+
+describe('calculateGridLines with propertyBounds', () => {
+	const smallProperty: CanvasBounds = {
+		left: 0,
+		top: 0,
+		right: 150, // 5ft at 30px/ft
+		bottom: 150
+	};
+
+	const baseParams = {
+		canvasWidth: 2000,
+		canvasHeight: 2000,
+		gridScale: '1ft' as const,
+		zoom: 1,
+		panOffset: { x: 0, y: 0 }
+	};
+
+	it('produces fewer lines with property bounds than without', () => {
+		const unbounded = calculateGridLines(baseParams);
+		const bounded = calculateGridLines({ ...baseParams, propertyBounds: smallProperty });
+		expect(bounded.length).toBeLessThan(unbounded.length);
+	});
+
+	it('grid lines stay within property bounds plus padding', () => {
+		const bounded = calculateGridLines({ ...baseParams, propertyBounds: smallProperty });
+		const padding = BASE_PIXELS_PER_FOOT * 2; // GRID_PADDING_UNITS = 2
+
+		for (const line of bounded) {
+			const [x1, y1, x2, y2] = line.points;
+			// Vertical lines: x should be within padded bounds
+			if (x1 === x2) {
+				expect(x1).toBeGreaterThanOrEqual(smallProperty.left - padding - 1);
+				expect(x1).toBeLessThanOrEqual(smallProperty.right + padding + 1);
+			}
+			// Horizontal lines: y should be within padded bounds
+			if (y1 === y2) {
+				expect(y1).toBeGreaterThanOrEqual(smallProperty.top - padding - 1);
+				expect(y1).toBeLessThanOrEqual(smallProperty.bottom + padding + 1);
+			}
+		}
+	});
+
+	it('returns empty when viewport is fully outside property bounds', () => {
+		const farAway = calculateGridLines({
+			...baseParams,
+			// Pan so viewport is far from the property
+			panOffset: { x: -50000, y: -50000 }
+		});
+
+		const farAwayBounded = calculateGridLines({
+			...baseParams,
+			panOffset: { x: -50000, y: -50000 },
+			propertyBounds: smallProperty
+		});
+
+		// Unbounded still generates lines (infinite grid), bounded should not
+		expect(farAway.length).toBeGreaterThan(0);
+		expect(farAwayBounded.length).toBe(0);
+	});
+
+	it('without propertyBounds, behaves like original (backward compatible)', () => {
+		const lines = calculateGridLines(baseParams);
+		expect(lines.length).toBeGreaterThan(0);
 	});
 });

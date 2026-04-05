@@ -13,7 +13,8 @@ import {
 	calculatePanOffset,
 	getDistanceBetweenPoints,
 	getMidpoint,
-	clampZoom
+	clampZoom,
+	clampPanOffset
 } from './pan-zoom-utils.js';
 
 describe('Story 1.4 AC#2: calculateWheelZoom (FR20)', () => {
@@ -176,5 +177,115 @@ describe('Story 1.4: Helper functions (defensive)', () => {
 		expect(clampZoom(0.05)).toBe(0.1);
 		expect(clampZoom(15)).toBe(10);
 		expect(clampZoom(5)).toBe(5);
+	});
+});
+
+describe('clampPanOffset', () => {
+	// Property: 0,0 to 1500,3000 (50ft × 100ft at 30px/ft)
+	const baseBounds = {
+		boundsLeft: 0,
+		boundsTop: 0,
+		boundsRight: 1500,
+		boundsBottom: 3000
+	};
+
+	const baseParams = {
+		zoom: 1,
+		viewportWidth: 800,
+		viewportHeight: 600,
+		...baseBounds
+	};
+
+	it('does not clamp when property is centered in viewport', () => {
+		const result = clampPanOffset({
+			...baseParams,
+			panOffset: { x: 0, y: 0 }
+		});
+		expect(result).toEqual({ x: 0, y: 0 });
+	});
+
+	it('clamps pan that would push property fully off-screen to the left', () => {
+		// pan.x = 5000 means viewport left is at canvas x = -5000
+		// Property right edge at 1500 would be off the left side of viewport
+		// maxX = -boundsLeft * zoom + viewportWidth = 0 + 800 = 800
+		const result = clampPanOffset({
+			...baseParams,
+			panOffset: { x: 5000, y: 0 }
+		});
+		expect(result.x).toBe(800); // maxX
+	});
+
+	it('clamps pan that would push property fully off-screen to the right', () => {
+		// pan.x = -10000 means viewport left is at canvas x = 10000
+		// Property right edge at 1500 is off to the left
+		// minX = -boundsRight * zoom = -1500
+		const result = clampPanOffset({
+			...baseParams,
+			panOffset: { x: -10000, y: 0 }
+		});
+		expect(result.x).toBe(-1500); // minX
+	});
+
+	it('clamps pan that would push property off-screen vertically', () => {
+		const result = clampPanOffset({
+			...baseParams,
+			panOffset: { x: 0, y: -20000 }
+		});
+		expect(result.y).toBe(-3000); // minY = -boundsBottom * zoom
+	});
+
+	it('clamps in both axes simultaneously', () => {
+		const result = clampPanOffset({
+			...baseParams,
+			panOffset: { x: 5000, y: 5000 }
+		});
+		expect(result.x).toBe(800);  // maxX
+		expect(result.y).toBe(600);  // maxY = viewportHeight
+	});
+
+	it('adjusts limits when zoomed in', () => {
+		const result = clampPanOffset({
+			...baseParams,
+			zoom: 2,
+			panOffset: { x: 5000, y: 0 }
+		});
+		// maxX = -boundsLeft * zoom + viewportWidth = 0 + 800 = 800
+		expect(result.x).toBe(800);
+
+		const resultMin = clampPanOffset({
+			...baseParams,
+			zoom: 2,
+			panOffset: { x: -10000, y: 0 }
+		});
+		// minX = -boundsRight * zoom = -1500 * 2 = -3000
+		expect(resultMin.x).toBe(-3000);
+	});
+
+	it('adjusts limits when zoomed out', () => {
+		const result = clampPanOffset({
+			...baseParams,
+			zoom: 0.5,
+			panOffset: { x: -10000, y: 0 }
+		});
+		// minX = -boundsRight * zoom = -1500 * 0.5 = -750
+		expect(result.x).toBe(-750);
+	});
+
+	it('allows panning freely within valid range', () => {
+		// pan.x = -500 is between minX (-1500) and maxX (800)
+		const result = clampPanOffset({
+			...baseParams,
+			panOffset: { x: -500, y: -200 }
+		});
+		expect(result).toEqual({ x: -500, y: -200 });
+	});
+
+	it('property at edge of viewport is valid (not clamped further)', () => {
+		// Exactly at minX — property right edge touches viewport left edge
+		const result = clampPanOffset({
+			...baseParams,
+			panOffset: { x: -1500, y: 0 }
+		});
+		expect(result.x).toBe(-1500);
 	});
 });

@@ -8,12 +8,22 @@ export interface GridLineConfig {
 	isMajor: boolean;
 }
 
+/** Axis-aligned bounding box in canvas-space pixels (zoom=1). */
+export interface CanvasBounds {
+	left: number;
+	top: number;
+	right: number;
+	bottom: number;
+}
+
 export interface GridLineParams {
 	canvasWidth: number;
 	canvasHeight: number;
 	gridScale: GridScale;
 	zoom: number;
 	panOffset: PanOffset;
+	/** When provided, the grid is limited to this region (with padding). */
+	propertyBounds?: CanvasBounds;
 }
 
 export interface CanvasSize {
@@ -58,14 +68,16 @@ function getMajorInterval(gridScale: GridScale): number {
 	}
 }
 
+/** Padding around property bounds for grid lines (in grid units). */
+const GRID_PADDING_UNITS = 2;
+
 export function calculateGridLines(params: GridLineParams): GridLineConfig[] {
-	const { canvasWidth, canvasHeight, gridScale, zoom, panOffset } = params;
+	const { canvasWidth, canvasHeight, gridScale, zoom, panOffset, propertyBounds } = params;
 
 	if (canvasWidth <= 0 || canvasHeight <= 0) {
 		return [];
 	}
 
-	// Base spacing in canvas-space pixels (without zoom — Stage transform handles zoom)
 	const baseSpacing = getBaseGridSpacing(gridScale);
 	const majorInterval = getMajorInterval(gridScale);
 	const lines: GridLineConfig[] = [];
@@ -76,30 +88,49 @@ export function calculateGridLines(params: GridLineParams): GridLineConfig[] {
 	const viewRight = viewLeft + canvasWidth / zoom;
 	const viewBottom = viewTop + canvasHeight / zoom;
 
-	// Find first grid line index visible in viewport
-	const startCol = Math.floor(viewLeft / baseSpacing) - 1;
-	const endCol = Math.ceil(viewRight / baseSpacing) + 1;
-	const startRow = Math.floor(viewTop / baseSpacing) - 1;
-	const endRow = Math.ceil(viewBottom / baseSpacing) + 1;
+	// Determine grid extent — property bounds with padding, or viewport (legacy)
+	const padding = baseSpacing * GRID_PADDING_UNITS;
+	const gridLeft = propertyBounds ? propertyBounds.left - padding : viewLeft - baseSpacing;
+	const gridTop = propertyBounds ? propertyBounds.top - padding : viewTop - baseSpacing;
+	const gridRight = propertyBounds ? propertyBounds.right + padding : viewRight + baseSpacing;
+	const gridBottom = propertyBounds ? propertyBounds.bottom + padding : viewBottom + baseSpacing;
 
-	// Vertical lines
+	// Only draw lines that are within the visible viewport AND the grid extent
+	const clippedLeft = Math.max(viewLeft - baseSpacing, gridLeft);
+	const clippedTop = Math.max(viewTop - baseSpacing, gridTop);
+	const clippedRight = Math.min(viewRight + baseSpacing, gridRight);
+	const clippedBottom = Math.min(viewBottom + baseSpacing, gridBottom);
+
+	if (clippedLeft >= clippedRight || clippedTop >= clippedBottom) {
+		return [];
+	}
+
+	// Grid line indices within the bounded region
+	const startCol = Math.floor(gridLeft / baseSpacing);
+	const endCol = Math.ceil(gridRight / baseSpacing);
+	const startRow = Math.floor(gridTop / baseSpacing);
+	const endRow = Math.ceil(gridBottom / baseSpacing);
+
+	// Vertical lines — only those visible in viewport
 	for (let col = startCol; col <= endCol; col++) {
 		const x = col * baseSpacing;
+		if (x < clippedLeft || x > clippedRight) continue;
 		const isMajor = col % majorInterval === 0;
 		lines.push({
-			points: [x, viewTop - baseSpacing, x, viewBottom + baseSpacing],
+			points: [x, clippedTop, x, clippedBottom],
 			stroke: isMajor ? '#888' : '#ccc',
 			strokeWidth: isMajor ? 1.5 : 0.75,
 			isMajor
 		});
 	}
 
-	// Horizontal lines
+	// Horizontal lines — only those visible in viewport
 	for (let row = startRow; row <= endRow; row++) {
 		const y = row * baseSpacing;
+		if (y < clippedTop || y > clippedBottom) continue;
 		const isMajor = row % majorInterval === 0;
 		lines.push({
-			points: [viewLeft - baseSpacing, y, viewRight + baseSpacing, y],
+			points: [clippedLeft, y, clippedRight, y],
 			stroke: isMajor ? '#888' : '#ccc',
 			strokeWidth: isMajor ? 1.5 : 0.75,
 			isMajor
@@ -107,6 +138,22 @@ export function calculateGridLines(params: GridLineParams): GridLineConfig[] {
 	}
 
 	return lines;
+}
+
+/**
+ * Compute property bounds in canvas-space pixels from dimensions.
+ * Property is placed with top-left at origin (0, 0).
+ */
+export function getPropertyBounds(
+	dimensions: { width: number; length: number; unit: 'ft' | 'm' }
+): CanvasBounds {
+	const pxPerUnit = dimensions.unit === 'm' ? BASE_PIXELS_PER_METER : BASE_PIXELS_PER_FOOT;
+	return {
+		left: 0,
+		top: 0,
+		right: dimensions.width * pxPerUnit,
+		bottom: dimensions.length * pxPerUnit
+	};
 }
 
 /** Returns the base pixel spacing for one grid unit at zoom=1. */

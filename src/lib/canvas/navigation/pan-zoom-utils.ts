@@ -103,3 +103,56 @@ export function calculatePanOffset(params: PanOffsetParams): Point {
 		y: currentOffset.y + (dragEnd.y - dragStart.y)
 	};
 }
+
+export interface PanClampParams {
+	/** Current pan offset (stage position in screen pixels). */
+	panOffset: Point;
+	/** Current zoom level. */
+	zoom: number;
+	/** Viewport dimensions in screen pixels. */
+	viewportWidth: number;
+	viewportHeight: number;
+	/** Property bounds in canvas-space pixels (at zoom=1). */
+	boundsLeft: number;
+	boundsTop: number;
+	boundsRight: number;
+	boundsBottom: number;
+}
+
+/**
+ * Clamps the pan offset so the property area is always at least partially
+ * visible. The property rectangle must always overlap the viewport — you
+ * cannot pan it fully off-screen in any direction.
+ */
+export function clampPanOffset(params: PanClampParams): Point {
+	const {
+		panOffset,
+		zoom,
+		viewportWidth,
+		viewportHeight,
+		boundsLeft,
+		boundsTop,
+		boundsRight,
+		boundsBottom
+	} = params;
+
+	// viewport left (canvas space) = -pan.x / zoom
+	// viewport right = -pan.x / zoom + viewportWidth / zoom
+	//
+	// Property visible horizontally when:
+	//   boundsRight >= viewportLeft  AND  boundsLeft <= viewportRight
+	//
+	// Solving for pan.x:
+	//   min: pan.x >= -boundsRight * zoom         (right edge at viewport left)
+	//   max: pan.x <= -boundsLeft * zoom + viewportWidth  (left edge at viewport right)
+
+	const minX = -(boundsRight * zoom);
+	const maxX = -(boundsLeft * zoom) + viewportWidth;
+	const minY = -(boundsBottom * zoom);
+	const maxY = -(boundsTop * zoom) + viewportHeight;
+
+	return {
+		x: Math.min(maxX, Math.max(minX, panOffset.x)),
+		y: Math.min(maxY, Math.max(minY, panOffset.y))
+	};
+}
