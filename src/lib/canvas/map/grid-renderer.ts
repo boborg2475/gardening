@@ -1,5 +1,11 @@
 import type { GridScale, PanOffset } from '../../types/canvas.js';
 import { BASE_PIXELS_PER_FOOT, BASE_PIXELS_PER_METER } from '../../types/canvas.js';
+import {
+	GRID_MAJOR_STROKE,
+	GRID_MINOR_STROKE,
+	GRID_MAJOR_WIDTH,
+	GRID_MINOR_WIDTH
+} from '../canvas-theme.js';
 
 export interface GridLineConfig {
 	points: [number, number, number, number];
@@ -118,8 +124,8 @@ export function calculateGridLines(params: GridLineParams): GridLineConfig[] {
 		const isMajor = col % majorInterval === 0;
 		lines.push({
 			points: [x, clippedTop, x, clippedBottom],
-			stroke: isMajor ? '#888' : '#ccc',
-			strokeWidth: isMajor ? 1.5 : 0.75,
+			stroke: isMajor ? GRID_MAJOR_STROKE : GRID_MINOR_STROKE,
+			strokeWidth: isMajor ? GRID_MAJOR_WIDTH : GRID_MINOR_WIDTH,
 			isMajor
 		});
 	}
@@ -131,8 +137,8 @@ export function calculateGridLines(params: GridLineParams): GridLineConfig[] {
 		const isMajor = row % majorInterval === 0;
 		lines.push({
 			points: [clippedLeft, y, clippedRight, y],
-			stroke: isMajor ? '#888' : '#ccc',
-			strokeWidth: isMajor ? 1.5 : 0.75,
+			stroke: isMajor ? GRID_MAJOR_STROKE : GRID_MINOR_STROKE,
+			strokeWidth: isMajor ? GRID_MAJOR_WIDTH : GRID_MINOR_WIDTH,
 			isMajor
 		});
 	}

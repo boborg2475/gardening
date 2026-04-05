@@ -22,6 +22,21 @@
 	import { isNearFirstPoint } from '../../domain/polygon-drawing.js';
 	import { getProperties } from '../../stores/materialized-state.svelte.js';
 	import { createLogger } from '../../utils/logger.js';
+	import {
+		CANVAS_BACKGROUND,
+		DRAWING_STROKE,
+		DRAWING_STROKE_WIDTH,
+		DRAWING_PREVIEW_STROKE,
+		DRAWING_PREVIEW_WIDTH,
+		DRAWING_PREVIEW_DASH,
+		DRAWING_POINT_FILL,
+		DRAWING_POINT_FIRST_FILL,
+		DRAWING_POINT_STROKE,
+		DRAWING_POINT_STROKE_WIDTH,
+		BOUNDARY_STROKE,
+		BOUNDARY_STROKE_WIDTH,
+		BOUNDARY_FILL
+	} from '../canvas-theme.js';
 
 	const log = createLogger('canvas');
 
@@ -301,6 +316,7 @@
 	bind:this={containerEl}
 	data-testid="property-map"
 	class="relative h-full w-full"
+	style="background-color: {CANVAS_BACKGROUND};"
 	role="application"
 	aria-label="Property map canvas"
 	onwheel={handleWheel}
@@ -335,22 +351,22 @@
 			{#if drawingStore.mode === 'complete' && completedPolygonPoints.length > 0}
 				<Line
 					points={completedPolygonPoints}
-					stroke="#2563eb"
-					strokeWidth={2}
-					fill="rgba(37, 99, 235, 0.2)"
+					stroke={BOUNDARY_STROKE}
+					strokeWidth={BOUNDARY_STROKE_WIDTH}
+					fill={BOUNDARY_FILL}
 					closed={true}
 					listening={false}
 				/>
 			{/if}
 			{#if drawingStore.isActive && drawingLinePoints.length >= 4}
-				<Line points={drawingLinePoints} stroke="#2563eb" strokeWidth={2} listening={false} />
+				<Line points={drawingLinePoints} stroke={DRAWING_STROKE} strokeWidth={DRAWING_STROKE_WIDTH} listening={false} />
 			{/if}
 			{#if drawingStore.isActive && previewLinePoints.length === 4}
 				<Line
 					points={previewLinePoints}
-					stroke="#93c5fd"
-					strokeWidth={1}
-					dash={[6, 3]}
+					stroke={DRAWING_PREVIEW_STROKE}
+					strokeWidth={DRAWING_PREVIEW_WIDTH}
+					dash={DRAWING_PREVIEW_DASH}
 					listening={false}
 				/>
 			{/if}
@@ -359,9 +375,9 @@
 					x={point.x}
 					y={point.y}
 					radius={6 / navigationContext.zoomLevel}
-					fill={i === 0 ? '#22c55e' : '#2563eb'}
-					stroke="#ffffff"
-					strokeWidth={2 / navigationContext.zoomLevel}
+					fill={i === 0 ? DRAWING_POINT_FIRST_FILL : DRAWING_POINT_FILL}
+					stroke={DRAWING_POINT_STROKE}
+					strokeWidth={DRAWING_POINT_STROKE_WIDTH / navigationContext.zoomLevel}
 					listening={false}
 				/>
 			{/each}
