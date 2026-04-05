@@ -8,6 +8,13 @@
  * AC#4 (FR4)  -> 'updatePreview updates preview position'
  * AC#5 (FR4)  -> 'finalize commits PolygonDrawn event to IndexedDB and resets state', 'finalize returns the committed event'
  * Edge cases  -> 'cancel resets store to idle', 'isActive is true when mode is placing', 'isActive is false when mode is idle'
+ *
+ * Story 1.6: Drawing Precision Tools
+ *
+ * Traceability:
+ * AC#1 (FR14) -> 'toggleSegmentCurve toggles segment type via store', 'segments array is exposed on store'
+ * AC#6 (FR19) -> 'enterConfirmation transitions store to confirming', 'confirmPolygon copies confirmation data back', 'cancelConfirmation restores original data', 'isConfirming reflects confirming mode', 'confirmationPoints exposed on store', 'confirmationSegments exposed on store'
+ * AC#7 (FR19) -> 'adjustConfirmationPoint updates point via store'
  */
 
 import 'fake-indexeddb/auto';
@@ -204,5 +211,182 @@ describe('Story 1.5 Edge cases: drawing store', () => {
 
 		// complete mode means drawing is done, not actively placing
 		expect(store.isActive).toBe(false);
+	});
+});
+
+// ──────────────────────────────────────────────────────────────
+// Story 1.6: Drawing Precision Tools — Drawing Store Extensions
+// ──────────────────────────────────────────────────────────────
+
+describe('Story 1.6 AC#1: segments on drawing store (FR14)', () => {
+	let store: ReturnType<typeof createDrawingStore>;
+
+	beforeEach(async () => {
+		await db.delete();
+		await db.open();
+		_reset();
+		store = createDrawingStore();
+	});
+
+	it('segments array is exposed on store (AC#1, FR14)', () => {
+		expect(store.segments).toBeDefined();
+		expect(store.segments).toEqual([]);
+	});
+
+	it('segments populate as points are placed (AC#1, FR14)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		expect(store.segments).toHaveLength(0);
+
+		store.placePoint({ x: 100, y: 0 });
+		expect(store.segments).toHaveLength(1);
+		expect(store.segments[0]).toEqual({ type: 'line' });
+	});
+
+	it('toggleSegmentCurve toggles segment type via store (AC#1, FR14)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		store.toggleSegmentCurve(0);
+		expect(store.segments[0].type).toBe('curve');
+		expect(store.segments[0].controlPoint).toEqual({ x: 50, y: 0 });
+	});
+
+	it('updateCurveControl updates curve control point via store (AC#2, FR15)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		store.toggleSegmentCurve(0);
+		store.updateCurveControl(0, { x: 30, y: -20 });
+		expect(store.segments[0].controlPoint).toEqual({ x: 30, y: -20 });
+	});
+});
+
+describe('Story 1.6 AC#6: two-stage confirmation on drawing store (FR19)', () => {
+	let store: ReturnType<typeof createDrawingStore>;
+
+	beforeEach(async () => {
+		await db.delete();
+		await db.open();
+		_reset();
+		store = createDrawingStore();
+	});
+
+	it('isConfirming is false initially (AC#6, FR19)', () => {
+		expect(store.isConfirming).toBe(false);
+	});
+
+	it('enterConfirmation transitions store to confirming (AC#6, FR19)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		store.enterConfirmation();
+		expect(store.isConfirming).toBe(true);
+		expect(store.mode).toBe('confirming');
+	});
+
+	it('confirmationPoints exposed on store after entering confirmation (AC#6, FR19)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		store.enterConfirmation();
+		expect(store.confirmationPoints).toBeDefined();
+		expect(store.confirmationPoints).toHaveLength(3);
+	});
+
+	it('confirmationSegments exposed on store after entering confirmation (AC#6, FR19)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		store.enterConfirmation();
+		expect(store.confirmationSegments).toBeDefined();
+		expect(store.confirmationSegments).toHaveLength(2);
+	});
+
+	it('confirmPolygon copies confirmation data back and transitions to complete (AC#6, FR19)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		store.enterConfirmation();
+		store.adjustConfirmationPoint(0, { x: 10, y: 10 });
+		store.confirmPolygon();
+
+		expect(store.mode).toBe('complete');
+		expect(store.points[0]).toEqual({ x: 10, y: 10 });
+		expect(store.isConfirming).toBe(false);
+		expect(store.confirmationPoints).toBeUndefined();
+	});
+
+	it('cancelConfirmation restores original data (AC#6, FR19)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		store.enterConfirmation();
+		store.adjustConfirmationPoint(0, { x: 999, y: 999 });
+		store.cancelConfirmation();
+
+		expect(store.mode).toBe('complete');
+		expect(store.points[0]).toEqual({ x: 0, y: 0 });
+		expect(store.isConfirming).toBe(false);
+		expect(store.confirmationPoints).toBeUndefined();
+	});
+});
+
+describe('Story 1.6 AC#7: adjustConfirmationPoint on drawing store (FR19)', () => {
+	let store: ReturnType<typeof createDrawingStore>;
+
+	beforeEach(async () => {
+		await db.delete();
+		await db.open();
+		_reset();
+		store = createDrawingStore();
+	});
+
+	it('adjustConfirmationPoint updates point via store (AC#7, FR19)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		store.enterConfirmation();
+		store.adjustConfirmationPoint(1, { x: 150, y: 50 });
+
+		expect(store.confirmationPoints![1]).toEqual({ x: 150, y: 50 });
+	});
+
+	it('adjustConfirmationPoint preserves other points (AC#7, FR19)', () => {
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		store.enterConfirmation();
+		store.adjustConfirmationPoint(1, { x: 150, y: 50 });
+
+		expect(store.confirmationPoints![0]).toEqual({ x: 0, y: 0 });
+		expect(store.confirmationPoints![2]).toEqual({ x: 100, y: 100 });
 	});
 });

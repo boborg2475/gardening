@@ -1,6 +1,8 @@
 import type { NavigationContext } from '../stores/navigation-context.svelte.js';
 import type { DrawingStore } from '../stores/drawing-store.svelte.js';
+import type { PrecisionToolsStore } from '../stores/precision-tools-store.svelte.js';
 import type { Property } from '../types/entities.js';
+import type { Point } from '../types/geometry.js';
 
 export interface StageState {
 	width: number;
@@ -18,9 +20,21 @@ export interface TestHooksAPI {
 		points: { x: number; y: number }[];
 		previewPosition: { x: number; y: number } | undefined;
 		pointCount: number;
+		confirmationPoints: { x: number; y: number }[] | undefined;
+		confirmationSegments: unknown[] | undefined;
 	};
 	finalizeDrawing(): Promise<void>;
 	getProperties(): Property[];
+	setPrecisionTools(config: {
+		snapToGrid?: boolean;
+		snapScale?: string;
+		twoStageConfirm?: boolean;
+		snapAssist?: boolean;
+		loupe?: boolean;
+	}): void;
+	confirmPolygon(): void;
+	cancelConfirmation(): void;
+	adjustConfirmationPoint(index: number, point: Point): void;
 }
 
 export interface SetupTestHooksParams {
@@ -29,10 +43,18 @@ export interface SetupTestHooksParams {
 	mode: string;
 	drawingStore?: DrawingStore;
 	getProperties?: () => Property[];
+	precisionToolsStore?: PrecisionToolsStore;
 }
 
 export function setupTestHooks(params: SetupTestHooksParams): void {
-	const { stage, navigationContext, mode, drawingStore, getProperties: getPropertiesFn } = params;
+	const {
+		stage,
+		navigationContext,
+		mode,
+		drawingStore,
+		getProperties: getPropertiesFn,
+		precisionToolsStore
+	} = params;
 
 	if (mode === 'production') {
 		return;
@@ -57,13 +79,22 @@ export function setupTestHooks(params: SetupTestHooksParams): void {
 		},
 		getDrawingState() {
 			if (!drawingStore) {
-				return { mode: 'idle', points: [], previewPosition: undefined, pointCount: 0 };
+				return {
+					mode: 'idle',
+					points: [],
+					previewPosition: undefined,
+					pointCount: 0,
+					confirmationPoints: undefined,
+					confirmationSegments: undefined
+				};
 			}
 			return {
 				mode: drawingStore.mode,
 				points: drawingStore.points,
 				previewPosition: drawingStore.previewPosition,
-				pointCount: drawingStore.points.length
+				pointCount: drawingStore.points.length,
+				confirmationPoints: drawingStore.confirmationPoints,
+				confirmationSegments: drawingStore.confirmationSegments
 			};
 		},
 		async finalizeDrawing() {
@@ -75,6 +106,27 @@ export function setupTestHooks(params: SetupTestHooksParams): void {
 		},
 		getProperties() {
 			return getPropertiesFn ? getPropertiesFn() : [];
+		},
+		setPrecisionTools(config) {
+			if (!precisionToolsStore) return;
+			if (config.snapToGrid !== undefined) precisionToolsStore.setSnapToGrid(config.snapToGrid);
+			if (config.snapScale !== undefined)
+				precisionToolsStore.setSnapScale(
+					config.snapScale as Parameters<typeof precisionToolsStore.setSnapScale>[0]
+				);
+			if (config.twoStageConfirm !== undefined)
+				precisionToolsStore.setTwoStageConfirm(config.twoStageConfirm);
+			if (config.snapAssist !== undefined) precisionToolsStore.setSnapAssist(config.snapAssist);
+			if (config.loupe !== undefined) precisionToolsStore.setLoupe(config.loupe);
+		},
+		confirmPolygon() {
+			drawingStore?.confirmPolygon();
+		},
+		cancelConfirmation() {
+			drawingStore?.cancelConfirmation();
+		},
+		adjustConfirmationPoint(index, point) {
+			drawingStore?.adjustConfirmationPoint(index, point);
 		}
 	};
 
