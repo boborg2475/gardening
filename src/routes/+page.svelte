@@ -7,10 +7,12 @@
 	import PropertyMap from '$lib/canvas/map/PropertyMap.svelte';
 	import GridScaleSelector from '$lib/ui/shared/GridScaleSelector.svelte';
 	import ControlPanel from '$lib/ui/shared/ControlPanel.svelte';
+	import { PenTool, Compass } from 'lucide-svelte';
 	import type { GridScale } from '$lib/types/canvas.js';
 
 	let propertyMapRef: PropertyMap | undefined = $state(undefined);
 	let northDegrees = $state('');
+	let isDrawing = $state(false);
 
 	function handleGridScaleChange(scale: GridScale) {
 		propertyMapRef?.setGridScale(scale);
@@ -18,6 +20,7 @@
 
 	function handleDrawBoundary() {
 		propertyMapRef?.startBoundaryDrawing();
+		isDrawing = true;
 	}
 
 	async function handleSetNorth() {
@@ -42,10 +45,11 @@
 		<div class="absolute top-3 right-3 z-10">
 			<ControlPanel>
 				<button
-					class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary-hover"
+					class="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-ring/50 focus:ring-offset-1 {isDrawing ? 'bg-primary-hover text-primary-foreground ring-2 ring-primary' : 'bg-primary text-primary-foreground hover:bg-primary-hover'}"
 					onclick={handleDrawBoundary}
 				>
-					Draw Boundary
+					<PenTool size={14} />
+					{isDrawing ? 'Drawing...' : 'Draw Boundary'}
 				</button>
 				<GridScaleSelector
 					unit={property.dimensions?.unit ?? 'ft'}
@@ -56,6 +60,7 @@
 		</div>
 		<div class="absolute bottom-4 left-3 z-10">
 			<ControlPanel>
+				<Compass size={16} class="text-muted" />
 				<label class="text-sm font-medium text-foreground" for="north-orientation">North Orientation</label>
 				<input
 					id="north-orientation"
@@ -67,7 +72,7 @@
 					bind:value={northDegrees}
 				/>
 				<button
-					class="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent-hover"
+					class="inline-flex items-center gap-1.5 rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent-hover focus:outline-none focus:ring-2 focus:ring-accent/50 focus:ring-offset-1"
 					onclick={handleSetNorth}
 				>
 					Set North

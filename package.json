@@ -50,6 +50,7 @@
 	"dependencies": {
 		"dexie": "^4.4.2",
 		"konva": "^10.2.3",
+		"lucide-svelte": "^1.0.1",
 		"svelte-konva": "^1.0.1",
 		"zod": "^4.3.6"
 	}
