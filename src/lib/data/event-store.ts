@@ -62,6 +62,22 @@ export function applyEvent(state: MaterializedState, event: AppEvent): Materiali
 			properties.set(event.entityId, updated);
 			return { ...state, properties };
 		}
+		case 'PropertyBoundarySet': {
+			const existing = state.properties.get(event.entityId);
+			if (!existing) return state;
+			const updated = { ...existing, geometry: { points: event.payload.points } };
+			const properties = new Map(state.properties);
+			properties.set(event.entityId, updated);
+			return { ...state, properties };
+		}
+		case 'NorthOrientationSet': {
+			const existing = state.properties.get(event.entityId);
+			if (!existing) return state;
+			const updated = { ...existing, northOrientation: event.payload.degrees };
+			const properties = new Map(state.properties);
+			properties.set(event.entityId, updated);
+			return { ...state, properties };
+		}
 	}
 }
 

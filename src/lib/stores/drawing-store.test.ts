@@ -390,3 +390,74 @@ describe('Story 1.6 AC#7: adjustConfirmationPoint on drawing store (FR19)', () =
 		expect(store.confirmationPoints![2]).toEqual({ x: 100, y: 100 });
 	});
 });
+
+// ──────────────────────────────────────────────────────────────
+// Story 1.7: Property Boundary Drawing on Grid — Drawing Store
+// ──────────────────────────────────────────────────────────────
+
+/**
+ * Story 1.7: Property Boundary Drawing on Grid
+ *
+ * Traceability:
+ * AC#2 (FR4) → 'finalizeAsBoundary commits PropertyBoundarySet event and resets state',
+ *               'finalizeAsBoundary event has correct entityId and type'
+ */
+
+describe('Story 1.7 AC#2: finalizeAsBoundary on drawing store (FR4)', () => {
+	let store: ReturnType<typeof createDrawingStore>;
+
+	beforeEach(async () => {
+		await db.delete();
+		await db.open();
+		_reset();
+		await initialize();
+		store = createDrawingStore();
+	});
+
+	it('finalizeAsBoundary commits PropertyBoundarySet event and resets state (AC#2, FR4)', async () => {
+		const entityId = crypto.randomUUID();
+
+		store.start();
+		store.placePoint({ x: 0, y: 0 });
+		store.placePoint({ x: 100, y: 0 });
+		store.placePoint({ x: 100, y: 100 });
+		store.close();
+
+		const event = await store.finalizeAsBoundary(entityId);
+
+		// State should be reset after finalizeAsBoundary
+		expect(store.mode).toBe('idle');
+		expect(store.points).toEqual([]);
+
+		// Event should be persisted to IndexedDB
+		const events = await db.events.where('entityId').equals(entityId).toArray();
+		const boundaryEvents = events.filter((e) => e.type === 'PropertyBoundarySet');
+		expect(boundaryEvents).toHaveLength(1);
+		expect(boundaryEvents[0].payload.points).toEqual([
+			{ x: 0, y: 0 },
+			{ x: 100, y: 0 },
+			{ x: 100, y: 100 }
+		]);
+	});
+
+	it('finalizeAsBoundary event has correct entityId and type (AC#2, FR4)', async () => {
+		const entityId = crypto.randomUUID();
+
+		store.start();
+		store.placePoint({ x: 10, y: 20 });
+		store.placePoint({ x: 30, y: 40 });
+		store.placePoint({ x: 50, y: 60 });
+		store.close();
+
+		const event = await store.finalizeAsBoundary(entityId);
+
+		expect(event.type).toBe('PropertyBoundarySet');
+		expect(event.entityId).toBe(entityId);
+		expect(event.entityType).toBe('property');
+		expect(event.payload.points).toEqual([
+			{ x: 10, y: 20 },
+			{ x: 30, y: 40 },
+			{ x: 50, y: 60 }
+		]);
+	});
+});
