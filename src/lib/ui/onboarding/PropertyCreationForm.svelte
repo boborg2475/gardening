@@ -33,31 +33,37 @@
 	}
 </script>
 
-<form onsubmit={handleSubmit} class="mx-auto max-w-md space-y-6 p-4">
-	<h2 class="text-2xl font-bold">Create Your Property</h2>
+<form
+	onsubmit={handleSubmit}
+	class="mx-auto max-w-md space-y-6 rounded-lg border border-border bg-surface p-6"
+	style="box-shadow: var(--shadow-md);"
+>
+	<h2 class="text-2xl font-bold text-foreground">Create Your Property</h2>
 
 	<div>
-		<label for="property-name" class="mb-1 block text-sm font-medium">Property Name</label>
+		<label for="property-name" class="mb-1 block text-sm font-medium text-foreground"
+			>Property Name</label
+		>
 		<input
 			id="property-name"
 			type="text"
 			bind:value={name}
 			maxlength={500}
 			placeholder="e.g., My Garden"
-			class="w-full rounded border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+			class="w-full rounded-md border border-border bg-input px-3 py-2 text-foreground placeholder-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
 		/>
 	</div>
 
 	{#if error}
-		<p class="text-sm text-red-600">{error}</p>
+		<p class="text-sm text-destructive">{error}</p>
 	{/if}
 
 	<fieldset class="space-y-3">
-		<legend class="text-sm font-medium text-gray-600">Dimensions (optional)</legend>
+		<legend class="text-sm font-medium text-muted-foreground">Dimensions (optional)</legend>
 
 		<div class="grid grid-cols-2 gap-3">
 			<div>
-				<label for="property-width" class="mb-1 block text-sm">Width</label>
+				<label for="property-width" class="mb-1 block text-sm text-foreground">Width</label>
 				<input
 					id="property-width"
 					type="number"
@@ -65,11 +71,11 @@
 					min="0"
 					step="any"
 					placeholder="0"
-					class="w-full rounded border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+					class="w-full rounded-md border border-border bg-input px-3 py-2 text-foreground placeholder-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
 				/>
 			</div>
 			<div>
-				<label for="property-length" class="mb-1 block text-sm">Length</label>
+				<label for="property-length" class="mb-1 block text-sm text-foreground">Length</label>
 				<input
 					id="property-length"
 					type="number"
@@ -77,17 +83,17 @@
 					min="0"
 					step="any"
 					placeholder="0"
-					class="w-full rounded border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+					class="w-full rounded-md border border-border bg-input px-3 py-2 text-foreground placeholder-muted focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
 				/>
 			</div>
 		</div>
 
 		<div>
-			<label for="property-unit" class="mb-1 block text-sm">Unit</label>
+			<label for="property-unit" class="mb-1 block text-sm text-foreground">Unit</label>
 			<select
 				id="property-unit"
 				bind:value={unit}
-				class="w-full rounded border border-gray-300 px-3 py-2 focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+				class="w-full rounded-md border border-border bg-input px-3 py-2 text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
 			>
 				<option value="ft">Feet</option>
 				<option value="m">Meters</option>
@@ -98,7 +104,7 @@
 	<button
 		type="submit"
 		disabled={submitting}
-		class="w-full rounded bg-green-600 px-4 py-2 font-medium text-white hover:bg-green-700 disabled:opacity-50"
+		class="w-full rounded-md bg-primary px-4 py-2 font-medium text-primary-foreground hover:bg-primary-hover disabled:opacity-50"
 	>
 		{submitting ? 'Creating...' : 'Create Property'}
 	</button>

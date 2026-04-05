@@ -20,13 +20,13 @@
 	}
 </script>
 
-<label class="flex items-center gap-2 text-sm">
+<label class="flex items-center gap-2 text-sm text-foreground">
 	<span>Grid Scale</span>
 	<select
 		aria-label="Grid Scale"
 		{value}
 		onchange={handleChange}
-		class="rounded border border-gray-300 px-2 py-1 text-sm focus:border-green-500 focus:outline-none focus:ring-1 focus:ring-green-500"
+		class="rounded-md border border-border bg-input px-2 py-1 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
 	>
 		{#each options as option (option)}
 			<option value={option}>{option}</option>
