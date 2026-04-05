@@ -1,3 +1,15 @@
+/**
+ * Story 1.2: Event Store & Property Data Model
+ *
+ * Traceability:
+ * AC#2 (FR2) → 'commits a valid PropertyCreated event with UUID and timestamp', 'commits a PropertyCreated event with optional dimensions', 'assigns unique UUIDs to each event' — valid events committed with UUID and ISO 8601 timestamp
+ * AC#3 (FR2) → 'rejects an invalid event and does NOT write to IndexedDB', 'rejects event with missing required fields' — invalid events rejected, not persisted
+ * AC#4 (FR3) → 'applies PropertyCreated to empty state', 'applies PropertyUpdated to existing property', 'replays all events into correct state', 'initializes from events when no snapshot exists', 'initializes from snapshot + newer events' — event replay computes correct state
+ * AC#5 (FR3) → 'writes and loads a snapshot', 'loadLatestSnapshot returns the newest snapshot', 'stateFromSnapshot rebuilds Map correctly', 'initializes from snapshot + newer events' — snapshot-based partial replay
+ * AC#6 (FR3) → 'reports extended replay threshold constant' — extended replay threshold
+ * AC#7 (FR4) → 'produces immutable state (new object on each apply)', 'preserves existing fields not present in update payload', 'handles null to clear nullable fields', 'ignores PropertyUpdated for a non-existent entity' — immutable state updates
+ */
+
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from './db.js';
@@ -13,13 +25,13 @@ import {
 	EXTENDED_REPLAY_THRESHOLD
 } from './event-store.js';
 
-describe('commitEvent', () => {
+describe('Story 1.2 AC#2, AC#3: commitEvent (FR2)', () => {
 	beforeEach(async () => {
 		await db.delete();
 		await db.open();
 	});
 
-	it('commits a valid PropertyCreated event with UUID and timestamp', async () => {
+	it('commits a valid PropertyCreated event with UUID and timestamp (AC#2, FR2)', async () => {
 		const event = await commitEvent({
 			type: 'PropertyCreated',
 			entityId: crypto.randomUUID(),
@@ -36,7 +48,7 @@ describe('commitEvent', () => {
 		expect(stored).toEqual(event);
 	});
 
-	it('commits a PropertyCreated event with optional dimensions', async () => {
+	it('commits a PropertyCreated event with optional dimensions (AC#2, FR2)', async () => {
 		const event = await commitEvent({
 			type: 'PropertyCreated',
 			entityId: crypto.randomUUID(),
@@ -47,7 +59,7 @@ describe('commitEvent', () => {
 		expect(event.payload.dimensions).toEqual({ width: 50, length: 100, unit: 'ft' });
 	});
 
-	it('rejects an invalid event and does NOT write to IndexedDB', async () => {
+	it('rejects an invalid event and does NOT write to IndexedDB (AC#3, FR2)', async () => {
 		await expect(
 			commitEvent({
 				type: 'PropertyCreated',
@@ -61,7 +73,7 @@ describe('commitEvent', () => {
 		expect(count).toBe(0);
 	});
 
-	it('rejects event with missing required fields', async () => {
+	it('rejects event with missing required fields (AC#3, FR2)', async () => {
 		await expect(
 			commitEvent({
 				type: 'PropertyCreated',
@@ -75,7 +87,7 @@ describe('commitEvent', () => {
 		expect(count).toBe(0);
 	});
 
-	it('assigns unique UUIDs to each event', async () => {
+	it('assigns unique UUIDs to each event (AC#2, FR2)', async () => {
 		const entityId = crypto.randomUUID();
 		const event1 = await commitEvent({
 			type: 'PropertyCreated',
@@ -94,8 +106,8 @@ describe('commitEvent', () => {
 	});
 });
 
-describe('applyEvent', () => {
-	it('applies PropertyCreated to empty state', () => {
+describe('Story 1.2 AC#4, AC#7: applyEvent (FR3, FR4)', () => {
+	it('applies PropertyCreated to empty state (AC#4, FR3)', () => {
 		const entityId = crypto.randomUUID();
 		const state = applyEvent(createEmptyState(), {
 			id: crypto.randomUUID(),
@@ -113,7 +125,7 @@ describe('applyEvent', () => {
 		});
 	});
 
-	it('applies PropertyUpdated to existing property', () => {
+	it('applies PropertyUpdated to existing property (AC#4, FR3)', () => {
 		const entityId = crypto.randomUUID();
 		let state = applyEvent(createEmptyState(), {
 			id: crypto.randomUUID(),
@@ -136,7 +148,7 @@ describe('applyEvent', () => {
 		expect(state.properties.get(entityId)?.name).toBe('Updated Garden');
 	});
 
-	it('produces immutable state (new object on each apply)', () => {
+	it('produces immutable state (new object on each apply) (AC#7, FR4)', () => {
 		const state1 = createEmptyState();
 		const state2 = applyEvent(state1, {
 			id: crypto.randomUUID(),
@@ -153,7 +165,7 @@ describe('applyEvent', () => {
 		expect(state2.properties.size).toBe(1);
 	});
 
-	it('ignores PropertyUpdated for a non-existent entity', () => {
+	it('ignores PropertyUpdated for a non-existent entity (AC#7, FR4)', () => {
 		const state = applyEvent(createEmptyState(), {
 			id: crypto.randomUUID(),
 			type: 'PropertyUpdated',
@@ -165,7 +177,7 @@ describe('applyEvent', () => {
 		expect(state.properties.size).toBe(0);
 	});
 
-	it('preserves existing fields not present in update payload', () => {
+	it('preserves existing fields not present in update payload (AC#7, FR4)', () => {
 		const entityId = crypto.randomUUID();
 		let state = applyEvent(createEmptyState(), {
 			id: crypto.randomUUID(),
@@ -189,7 +201,7 @@ describe('applyEvent', () => {
 		expect(prop.northOrientation).toBe(180);
 	});
 
-	it('handles null to clear nullable fields', () => {
+	it('handles null to clear nullable fields (AC#7, FR4)', () => {
 		const entityId = crypto.randomUUID();
 		let state = applyEvent(createEmptyState(), {
 			id: crypto.randomUUID(),
@@ -213,13 +225,13 @@ describe('applyEvent', () => {
 	});
 });
 
-describe('replayEvents', () => {
+describe('Story 1.2 AC#4, AC#5: replayEvents (FR3)', () => {
 	beforeEach(async () => {
 		await db.delete();
 		await db.open();
 	});
 
-	it('replays all events into correct state', async () => {
+	it('replays all events into correct state (AC#4, FR3)', async () => {
 		const entityId = crypto.randomUUID();
 		await commitEvent({
 			type: 'PropertyCreated',
@@ -240,7 +252,7 @@ describe('replayEvents', () => {
 		expect(state.properties.get(entityId)?.name).toBe('My Garden');
 	});
 
-	it('replays only events after a given timestamp', async () => {
+	it('replays only events after a given timestamp (AC#5, FR3)', async () => {
 		const entityId = crypto.randomUUID();
 		const createEvent = await commitEvent({
 			type: 'PropertyCreated',
@@ -268,7 +280,7 @@ describe('replayEvents', () => {
 		expect(afterCutoff[0].type).toBe('PropertyUpdated');
 	});
 
-	it('replayEvents with sinceTimestamp excludes older events', async () => {
+	it('replayEvents with sinceTimestamp excludes older events (AC#5, FR3)', async () => {
 		const entityId = crypto.randomUUID();
 		await commitEvent({
 			type: 'PropertyCreated',
@@ -291,13 +303,13 @@ describe('replayEvents', () => {
 	});
 });
 
-describe('snapshot', () => {
+describe('Story 1.2 AC#5: snapshot (FR3)', () => {
 	beforeEach(async () => {
 		await db.delete();
 		await db.open();
 	});
 
-	it('writes and loads a snapshot', async () => {
+	it('writes and loads a snapshot (AC#5, FR3)', async () => {
 		const entityId = crypto.randomUUID();
 		const state = applyEvent(createEmptyState(), {
 			id: crypto.randomUUID(),
@@ -316,7 +328,7 @@ describe('snapshot', () => {
 		expect(snapshot!.state.properties[0].name).toBe('Garden');
 	});
 
-	it('loadLatestSnapshot returns the newest snapshot', async () => {
+	it('loadLatestSnapshot returns the newest snapshot (AC#5, FR3)', async () => {
 		const state1 = applyEvent(createEmptyState(), {
 			id: crypto.randomUUID(),
 			type: 'PropertyCreated',
@@ -341,7 +353,7 @@ describe('snapshot', () => {
 		expect(latest!.state.properties[0].name).toBe('New');
 	});
 
-	it('stateFromSnapshot rebuilds Map correctly', async () => {
+	it('stateFromSnapshot rebuilds Map correctly (AC#5, FR3)', async () => {
 		const entityId = crypto.randomUUID();
 		const originalState = applyEvent(createEmptyState(), {
 			id: crypto.randomUUID(),
@@ -360,13 +372,13 @@ describe('snapshot', () => {
 	});
 });
 
-describe('initializeState', () => {
+describe('Story 1.2 AC#4, AC#5, AC#6: initializeState (FR3)', () => {
 	beforeEach(async () => {
 		await db.delete();
 		await db.open();
 	});
 
-	it('initializes from events when no snapshot exists', async () => {
+	it('initializes from events when no snapshot exists (AC#4, FR3)', async () => {
 		const entityId = crypto.randomUUID();
 		await commitEvent({
 			type: 'PropertyCreated',
@@ -385,7 +397,7 @@ describe('initializeState', () => {
 		expect(snapshot).toBeDefined();
 	});
 
-	it('initializes from snapshot + newer events', async () => {
+	it('initializes from snapshot + newer events (AC#5, FR3)', async () => {
 		const entityId = crypto.randomUUID();
 		await commitEvent({
 			type: 'PropertyCreated',
@@ -414,7 +426,7 @@ describe('initializeState', () => {
 		expect(eventsSinceSnapshot).toBe(1);
 	});
 
-	it('reports extended replay threshold constant', () => {
+	it('reports extended replay threshold constant (AC#6, FR3)', () => {
 		expect(EXTENDED_REPLAY_THRESHOLD).toBe(1000);
 	});
 });

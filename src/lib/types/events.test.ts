@@ -1,3 +1,11 @@
+/**
+ * Story 1.2: Event Store & Property Data Model
+ *
+ * Traceability:
+ * AC#2 (FR2) → 'accepts a name at exactly 500 characters', 'accepts a valid update with dimensions', 'accepts northOrientation at boundaries', 'accepts null for nullable fields', 'validates PropertyCreated events', 'validates PropertyUpdated events' — valid events accepted by Zod
+ * AC#3 (FR2) → 'rejects a name exceeding 500 characters', 'rejects invalid dimension unit', 'rejects a name exceeding 500 characters in update', 'rejects invalid dimension unit in update', 'rejects dimensions with missing or invalid fields', 'rejects northOrientation outside 0-360', 'rejects unknown event types' — invalid events rejected by Zod
+ */
+
 import { describe, it, expect } from 'vitest';
 import { PropertyCreatedSchema, PropertyUpdatedSchema, EventSchema } from './events.js';
 
@@ -8,8 +16,8 @@ const validBase = {
 	timestamp: new Date().toISOString()
 };
 
-describe('PropertyCreatedSchema', () => {
-	it('accepts a name at exactly 500 characters', () => {
+describe('Story 1.2 AC#2, AC#3: PropertyCreatedSchema (FR2)', () => {
+	it('accepts a name at exactly 500 characters (AC#2, FR2)', () => {
 		const result = PropertyCreatedSchema.safeParse({
 			...validBase,
 			type: 'PropertyCreated',
@@ -18,7 +26,7 @@ describe('PropertyCreatedSchema', () => {
 		expect(result.success).toBe(true);
 	});
 
-	it('rejects a name exceeding 500 characters', () => {
+	it('rejects a name exceeding 500 characters (AC#3, FR2)', () => {
 		const result = PropertyCreatedSchema.safeParse({
 			...validBase,
 			type: 'PropertyCreated',
@@ -27,7 +35,7 @@ describe('PropertyCreatedSchema', () => {
 		expect(result.success).toBe(false);
 	});
 
-	it('rejects invalid dimension unit', () => {
+	it('rejects invalid dimension unit (AC#3, FR2)', () => {
 		const result = PropertyCreatedSchema.safeParse({
 			...validBase,
 			type: 'PropertyCreated',
@@ -37,8 +45,8 @@ describe('PropertyCreatedSchema', () => {
 	});
 });
 
-describe('PropertyUpdatedSchema', () => {
-	it('rejects a name exceeding 500 characters in update', () => {
+describe('Story 1.2 AC#2, AC#3: PropertyUpdatedSchema (FR2)', () => {
+	it('rejects a name exceeding 500 characters in update (AC#3, FR2)', () => {
 		const result = PropertyUpdatedSchema.safeParse({
 			...validBase,
 			type: 'PropertyUpdated',
@@ -47,7 +55,7 @@ describe('PropertyUpdatedSchema', () => {
 		expect(result.success).toBe(false);
 	});
 
-	it('accepts a valid update with dimensions', () => {
+	it('accepts a valid update with dimensions (AC#2, FR2)', () => {
 		const result = PropertyUpdatedSchema.safeParse({
 			...validBase,
 			type: 'PropertyUpdated',
@@ -56,7 +64,7 @@ describe('PropertyUpdatedSchema', () => {
 		expect(result.success).toBe(true);
 	});
 
-	it('rejects invalid dimension unit in update', () => {
+	it('rejects invalid dimension unit in update (AC#3, FR2)', () => {
 		expect(
 			PropertyUpdatedSchema.safeParse({
 				...validBase,
@@ -73,7 +81,7 @@ describe('PropertyUpdatedSchema', () => {
 		).toBe(false);
 	});
 
-	it('rejects dimensions with missing or invalid fields', () => {
+	it('rejects dimensions with missing or invalid fields (AC#3, FR2)', () => {
 		expect(
 			PropertyUpdatedSchema.safeParse({
 				...validBase,
@@ -90,7 +98,7 @@ describe('PropertyUpdatedSchema', () => {
 		).toBe(false);
 	});
 
-	it('rejects northOrientation outside 0-360', () => {
+	it('rejects northOrientation outside 0-360 (AC#3, FR2)', () => {
 		expect(
 			PropertyUpdatedSchema.safeParse({
 				...validBase,
@@ -107,7 +115,7 @@ describe('PropertyUpdatedSchema', () => {
 		).toBe(false);
 	});
 
-	it('accepts northOrientation at boundaries', () => {
+	it('accepts northOrientation at boundaries (AC#2, FR2)', () => {
 		expect(
 			PropertyUpdatedSchema.safeParse({
 				...validBase,
@@ -124,7 +132,7 @@ describe('PropertyUpdatedSchema', () => {
 		).toBe(true);
 	});
 
-	it('accepts null for nullable fields', () => {
+	it('accepts null for nullable fields (AC#2, FR2)', () => {
 		expect(
 			PropertyUpdatedSchema.safeParse({
 				...validBase,
@@ -135,8 +143,8 @@ describe('PropertyUpdatedSchema', () => {
 	});
 });
 
-describe('EventSchema discriminated union', () => {
-	it('validates PropertyCreated events', () => {
+describe('Story 1.2 AC#2, AC#3: EventSchema discriminated union (FR2)', () => {
+	it('validates PropertyCreated events (AC#2, FR2)', () => {
 		expect(
 			EventSchema.safeParse({
 				...validBase,
@@ -146,7 +154,7 @@ describe('EventSchema discriminated union', () => {
 		).toBe(true);
 	});
 
-	it('validates PropertyUpdated events', () => {
+	it('validates PropertyUpdated events (AC#2, FR2)', () => {
 		expect(
 			EventSchema.safeParse({
 				...validBase,
@@ -156,7 +164,7 @@ describe('EventSchema discriminated union', () => {
 		).toBe(true);
 	});
 
-	it('rejects unknown event types', () => {
+	it('rejects unknown event types (AC#3, FR2)', () => {
 		expect(
 			EventSchema.safeParse({
 				...validBase,

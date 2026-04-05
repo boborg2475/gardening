@@ -1,3 +1,13 @@
+/**
+ * Story 1.2: Event Store & Property Data Model
+ *
+ * Traceability:
+ * AC#4 (FR3) → 'initializes with empty state', 'dispatches event and updates state', 'retrieves property by id', 'restores state from persisted events on initialize' — event replay computes correct state
+ * AC#5 (FR3) → 'has correct initial state before initialize', 'sets loading true during initialization' — splash screen during replay
+ * AC#6 (FR3) → 'isExtendedReplay is false for normal startup', 'sets extendedReplay true when events exceed threshold' — extended replay threshold UX
+ * AC#7 (FR4) → 'maintains immutability — dispatch produces new state objects' — immutable state updates with Svelte 5 runes
+ */
+
 import 'fake-indexeddb/auto';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { db } from '../data/db.js';
@@ -13,28 +23,28 @@ import {
 } from './materialized-state.svelte.js';
 import { EXTENDED_REPLAY_THRESHOLD } from '../data/event-store.js';
 
-describe('materialized state', () => {
+describe('Story 1.2: materialized state', () => {
 	beforeEach(async () => {
 		_reset();
 		await db.delete();
 		await db.open();
 	});
 
-	it('has correct initial state before initialize', () => {
+	it('has correct initial state before initialize (AC#5, FR3)', () => {
 		expect(isInitialized()).toBe(false);
 		expect(isLoading()).toBe(true);
 		expect(isExtendedReplay()).toBe(false);
 		expect(getProperties()).toEqual([]);
 	});
 
-	it('initializes with empty state', async () => {
+	it('initializes with empty state (AC#4, FR3)', async () => {
 		await initialize();
 		expect(isInitialized()).toBe(true);
 		expect(isLoading()).toBe(false);
 		expect(getProperties()).toEqual([]);
 	});
 
-	it('sets loading true during initialization', async () => {
+	it('sets loading true during initialization (AC#5, FR3)', async () => {
 		// After reset, loading is true (initial state)
 		expect(isLoading()).toBe(true);
 		await initialize();
@@ -42,7 +52,7 @@ describe('materialized state', () => {
 		expect(isLoading()).toBe(false);
 	});
 
-	it('dispatches event and updates state', async () => {
+	it('dispatches event and updates state (AC#4, AC#7, FR3)', async () => {
 		await initialize();
 
 		const entityId = crypto.randomUUID();
@@ -58,7 +68,7 @@ describe('materialized state', () => {
 		expect(properties[0].name).toBe('My Garden');
 	});
 
-	it('retrieves property by id', async () => {
+	it('retrieves property by id (AC#4, FR3)', async () => {
 		await initialize();
 
 		const entityId = crypto.randomUUID();
@@ -73,7 +83,7 @@ describe('materialized state', () => {
 		expect(property?.name).toBe('Garden');
 	});
 
-	it('restores state from persisted events on initialize', async () => {
+	it('restores state from persisted events on initialize (AC#4, FR3)', async () => {
 		const entityId = crypto.randomUUID();
 
 		await db.events.add({
@@ -90,12 +100,12 @@ describe('materialized state', () => {
 		expect(getProperty(entityId)?.name).toBe('Persisted Garden');
 	});
 
-	it('isExtendedReplay is false for normal startup', async () => {
+	it('isExtendedReplay is false for normal startup (AC#6, FR3)', async () => {
 		await initialize();
 		expect(isExtendedReplay()).toBe(false);
 	});
 
-	it('sets extendedReplay true when events exceed threshold', async () => {
+	it('sets extendedReplay true when events exceed threshold (AC#6, FR3)', async () => {
 		// Seed enough events to exceed the threshold
 		const events = [];
 		const entityId = crypto.randomUUID();
@@ -123,7 +133,7 @@ describe('materialized state', () => {
 		expect(isExtendedReplay()).toBe(true);
 	});
 
-	it('maintains immutability — dispatch produces new state objects', async () => {
+	it('maintains immutability — dispatch produces new state objects (AC#7, FR4)', async () => {
 		await initialize();
 
 		const propertiesBefore = getProperties();
