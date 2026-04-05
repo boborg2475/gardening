@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PointSchema } from './geometry.js';
 
 const BaseEventSchema = z.object({
 	id: z.string().uuid(),
@@ -39,11 +40,20 @@ export const PropertyUpdatedSchema = BaseEventSchema.extend({
 	})
 });
 
+export const PolygonDrawnSchema = BaseEventSchema.extend({
+	type: z.literal('PolygonDrawn'),
+	payload: z.object({
+		points: z.array(PointSchema).min(3).max(10000)
+	})
+});
+
 export const EventSchema = z.discriminatedUnion('type', [
 	PropertyCreatedSchema,
-	PropertyUpdatedSchema
+	PropertyUpdatedSchema,
+	PolygonDrawnSchema
 ]);
 
 export type AppEvent = z.infer<typeof EventSchema>;
 export type PropertyCreatedEvent = z.infer<typeof PropertyCreatedSchema>;
 export type PropertyUpdatedEvent = z.infer<typeof PropertyUpdatedSchema>;
+export type PolygonDrawnEvent = z.infer<typeof PolygonDrawnSchema>;
