@@ -20,6 +20,9 @@ import {
 	type SegmentMeta
 } from '../domain/polygon-drawing.js';
 import { commitPropertyBoundary } from '../domain/property.js';
+import { createLogger } from '../utils/logger.js';
+
+const log = createLogger('drawing');
 
 export interface DrawingStore {
 	readonly mode: DrawingMode;
@@ -74,18 +77,22 @@ export function createDrawingStore(): DrawingStore {
 			return drawingState.confirmationSegments;
 		},
 		start() {
+			log.info('start drawing');
 			drawingState = startDrawing();
 		},
 		placePoint(point: Point) {
+			log.debug('placePoint', point, '— total:', drawingState.points.length + 1);
 			drawingState = addPoint(drawingState, point);
 		},
 		updatePreview(position: Point) {
 			drawingState = domainUpdatePreview(drawingState, position);
 		},
 		close() {
+			log.info('close polygon —', drawingState.points.length, 'points');
 			drawingState = closePolygon(drawingState);
 		},
 		cancel() {
+			log.info('cancel drawing');
 			drawingState = cancelDrawing();
 		},
 		async finalize(entityId: string, entityType: string): Promise<AppEvent> {
