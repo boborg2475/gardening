@@ -200,6 +200,12 @@ test.describe('Story 1.7: Property Boundary Drawing on Grid', () => {
 		await northInput.fill('90');
 		await page.getByRole('button', { name: /set north/i }).click();
 
+		// Wait for async dispatch to complete
+		await page.waitForFunction(() => {
+			// @ts-expect-error -- test hook
+			return window.__propertyMap.getNorthIndicatorState()?.visible === true;
+		});
+
 		// Verify north indicator is rendered via test hooks
 		const northIndicator = await page.evaluate(() => {
 			// @ts-expect-error -- test hook
@@ -223,6 +229,12 @@ test.describe('Story 1.7: Property Boundary Drawing on Grid', () => {
 		const northInput = page.getByLabel(/north orientation/i);
 		await northInput.fill('270');
 		await page.getByRole('button', { name: /set north/i }).click();
+
+		// Wait for async dispatch to complete
+		await page.waitForFunction(() => {
+			// @ts-expect-error -- test hook
+			return window.__propertyMap.getNorthIndicatorState()?.visible === true;
+		});
 
 		// Reload the page
 		await page.reload();
