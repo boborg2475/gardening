@@ -20,6 +20,9 @@
 	import { screenToCanvas, getHitRadius, BASE_HIT_RADIUS_PX } from '../drawing/coordinate-utils.js';
 	import { isNearFirstPoint } from '../../domain/polygon-drawing.js';
 	import { getProperties } from '../../stores/materialized-state.svelte.js';
+	import { createLogger } from '../../utils/logger.js';
+
+	const log = createLogger('canvas');
 
 	let { property }: { property: Property } = $props();
 
@@ -103,6 +106,7 @@
 	}
 
 	function handleCanvasClick(e: MouseEvent) {
+		log.debug('click — mode:', drawingStore.mode, 'isActive:', drawingStore.isActive);
 		if (!drawingStore.isActive || !containerEl) return;
 
 		const rect = containerEl.getBoundingClientRect();
@@ -227,12 +231,14 @@
 	}
 
 	onMount(() => {
+		log.info('mounted, containerEl:', !!containerEl);
 		if (!containerEl) return;
 
 		const observer = new ResizeObserver((entries) => {
 			for (const entry of entries) {
 				containerWidth = entry.contentRect.width;
 				containerHeight = entry.contentRect.height;
+				log.debug('resize:', containerWidth, 'x', containerHeight);
 			}
 		});
 
@@ -265,63 +271,48 @@
 		bind:node={stageNode}
 		ondragend={handleDragEnd}
 	>
-		<Layer>
+		<Layer listening={false}>
 			{#each gridLines as line (line.points.join(',') + line.isMajor)}
 				<Line
-					config={{
-						points: line.points,
-						stroke: line.stroke,
-						strokeWidth: line.strokeWidth,
-						listening: false
-					}}
+					points={line.points}
+					stroke={line.stroke}
+					strokeWidth={line.strokeWidth / stageScaleX}
+					listening={false}
 				/>
 			{/each}
 		</Layer>
 		<Layer>
 			{#if drawingStore.mode === 'complete' && completedPolygonPoints.length > 0}
 				<Line
-					config={{
-						points: completedPolygonPoints,
-						stroke: '#2563eb',
-						strokeWidth: 2,
-						fill: 'rgba(37, 99, 235, 0.2)',
-						closed: true,
-						listening: false
-					}}
+					points={completedPolygonPoints}
+					stroke="#2563eb"
+					strokeWidth={2}
+					fill="rgba(37, 99, 235, 0.2)"
+					closed={true}
+					listening={false}
 				/>
 			{/if}
 			{#if drawingStore.isActive && drawingLinePoints.length >= 4}
-				<Line
-					config={{
-						points: drawingLinePoints,
-						stroke: '#2563eb',
-						strokeWidth: 2,
-						listening: false
-					}}
-				/>
+				<Line points={drawingLinePoints} stroke="#2563eb" strokeWidth={2} listening={false} />
 			{/if}
 			{#if drawingStore.isActive && previewLinePoints.length === 4}
 				<Line
-					config={{
-						points: previewLinePoints,
-						stroke: '#93c5fd',
-						strokeWidth: 1,
-						dash: [6, 3],
-						listening: false
-					}}
+					points={previewLinePoints}
+					stroke="#93c5fd"
+					strokeWidth={1}
+					dash={[6, 3]}
+					listening={false}
 				/>
 			{/if}
 			{#each drawingStore.isActive ? drawingStore.points : [] as point, i (i)}
 				<Circle
-					config={{
-						x: point.x,
-						y: point.y,
-						radius: 6 / navigationContext.zoomLevel,
-						fill: i === 0 ? '#22c55e' : '#2563eb',
-						stroke: '#ffffff',
-						strokeWidth: 2 / navigationContext.zoomLevel,
-						listening: false
-					}}
+					x={point.x}
+					y={point.y}
+					radius={6 / navigationContext.zoomLevel}
+					fill={i === 0 ? '#22c55e' : '#2563eb'}
+					stroke="#ffffff"
+					strokeWidth={2 / navigationContext.zoomLevel}
+					listening={false}
 				/>
 			{/each}
 		</Layer>

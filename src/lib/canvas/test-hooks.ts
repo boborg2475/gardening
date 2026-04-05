@@ -3,6 +3,7 @@ import type { DrawingStore } from '../stores/drawing-store.svelte.js';
 import type { PrecisionToolsStore } from '../stores/precision-tools-store.svelte.js';
 import type { Property } from '../types/entities.js';
 import type { Point } from '../types/geometry.js';
+import { setLogLevel, getLogLevel } from '../utils/logger.js';
 
 export interface StageState {
 	width: number;
@@ -157,4 +158,6 @@ export function setupTestHooks(params: SetupTestHooksParams): void {
 	};
 
 	(globalThis as Record<string, unknown>).__propertyMap = hooks;
+	(globalThis as Record<string, unknown>).__setLogLevel = setLogLevel;
+	(globalThis as Record<string, unknown>).__getLogLevel = getLogLevel;
 }

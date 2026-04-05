@@ -1,6 +1,9 @@
 import { db, type Snapshot } from './db.js';
 import { EventSchema, type AppEvent } from '../types/events.js';
 import type { Property } from '../types/entities.js';
+import { createLogger } from '../utils/logger.js';
+
+const log = createLogger('event-store');
 
 export interface MaterializedState {
 	properties: Map<string, Property>;
@@ -21,15 +24,17 @@ export async function commitEvent(
 
 	const result = EventSchema.safeParse(event);
 	if (!result.success) {
-		console.error('Event validation failed:', result.error);
+		log.error('Event validation failed:', result.error);
 		throw new Error(`Event validation failed: ${result.error.message}`);
 	}
 
 	await db.events.add(result.data);
+	log.info('committed', event.type, 'for', event.entityId);
 	return result.data;
 }
 
 export function applyEvent(state: MaterializedState, event: AppEvent): MaterializedState {
+	log.debug('applyEvent', event.type, 'entity:', event.entityId);
 	switch (event.type) {
 		case 'PropertyCreated': {
 			const property: Property = {

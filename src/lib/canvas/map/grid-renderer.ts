@@ -23,7 +23,7 @@ export interface CanvasSize {
 }
 
 /** Returns the pixel spacing for one grid unit at the given scale and zoom. */
-function getGridSpacing(gridScale: GridScale, zoom: number): number {
+export function getGridSpacing(gridScale: GridScale, zoom: number): number {
 	switch (gridScale) {
 		case '1ft':
 			return BASE_PIXELS_PER_FOOT * zoom;
@@ -65,47 +65,66 @@ export function calculateGridLines(params: GridLineParams): GridLineConfig[] {
 		return [];
 	}
 
-	const spacing = getGridSpacing(gridScale, zoom);
+	// Base spacing in canvas-space pixels (without zoom — Stage transform handles zoom)
+	const baseSpacing = getBaseGridSpacing(gridScale);
 	const majorInterval = getMajorInterval(gridScale);
 	const lines: GridLineConfig[] = [];
 
-	// Calculate the offset so grid lines shift with pan
-	const offsetX = panOffset.x % spacing;
-	const offsetY = panOffset.y % spacing;
+	// Convert viewport bounds to canvas space
+	const viewLeft = -panOffset.x / zoom;
+	const viewTop = -panOffset.y / zoom;
+	const viewRight = viewLeft + canvasWidth / zoom;
+	const viewBottom = viewTop + canvasHeight / zoom;
 
-	// Determine the index offset for major line calculation
-	const startIndexX = -Math.ceil((panOffset.x - offsetX) / spacing);
-	const startIndexY = -Math.ceil((panOffset.y - offsetY) / spacing);
+	// Find first grid line index visible in viewport
+	const startCol = Math.floor(viewLeft / baseSpacing) - 1;
+	const endCol = Math.ceil(viewRight / baseSpacing) + 1;
+	const startRow = Math.floor(viewTop / baseSpacing) - 1;
+	const endRow = Math.ceil(viewBottom / baseSpacing) + 1;
 
 	// Vertical lines
-	const numVertical = Math.ceil(canvasWidth / spacing) + 2;
-	for (let i = 0; i < numVertical; i++) {
-		const x = offsetX + i * spacing;
-		const index = startIndexX + i;
-		const isMajor = index % majorInterval === 0;
+	for (let col = startCol; col <= endCol; col++) {
+		const x = col * baseSpacing;
+		const isMajor = col % majorInterval === 0;
 		lines.push({
-			points: [x, 0, x, canvasHeight],
-			stroke: isMajor ? '#999' : '#ddd',
-			strokeWidth: isMajor ? 1.5 : 0.5,
+			points: [x, viewTop - baseSpacing, x, viewBottom + baseSpacing],
+			stroke: isMajor ? '#888' : '#ccc',
+			strokeWidth: isMajor ? 1.5 : 0.75,
 			isMajor
 		});
 	}
 
 	// Horizontal lines
-	const numHorizontal = Math.ceil(canvasHeight / spacing) + 2;
-	for (let i = 0; i < numHorizontal; i++) {
-		const y = offsetY + i * spacing;
-		const index = startIndexY + i;
-		const isMajor = index % majorInterval === 0;
+	for (let row = startRow; row <= endRow; row++) {
+		const y = row * baseSpacing;
+		const isMajor = row % majorInterval === 0;
 		lines.push({
-			points: [0, y, canvasWidth, y],
-			stroke: isMajor ? '#999' : '#ddd',
-			strokeWidth: isMajor ? 1.5 : 0.5,
+			points: [viewLeft - baseSpacing, y, viewRight + baseSpacing, y],
+			stroke: isMajor ? '#888' : '#ccc',
+			strokeWidth: isMajor ? 1.5 : 0.75,
 			isMajor
 		});
 	}
 
 	return lines;
+}
+
+/** Returns the base pixel spacing for one grid unit at zoom=1. */
+function getBaseGridSpacing(gridScale: GridScale): number {
+	switch (gridScale) {
+		case '1ft':
+			return BASE_PIXELS_PER_FOOT;
+		case '6in':
+			return BASE_PIXELS_PER_FOOT / 2;
+		case '1in':
+			return BASE_PIXELS_PER_FOOT / 12;
+		case '1m':
+			return BASE_PIXELS_PER_METER;
+		case '10cm':
+			return BASE_PIXELS_PER_METER / 10;
+		case '1cm':
+			return BASE_PIXELS_PER_METER / 100;
+	}
 }
 
 export function getPropertyCanvasSize(

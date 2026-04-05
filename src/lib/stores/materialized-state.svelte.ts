@@ -8,6 +8,9 @@ import {
 } from '../data/event-store.js';
 import type { AppEvent } from '../types/events.js';
 import type { Property } from '../types/entities.js';
+import { createLogger } from '../utils/logger.js';
+
+const log = createLogger('state');
 
 let state = $state<MaterializedState>(createEmptyState());
 let initialized = $state(false);
@@ -35,6 +38,7 @@ export function isExtendedReplay(): boolean {
 }
 
 export async function initialize(): Promise<void> {
+	log.info('initializing...');
 	loading = true;
 	extendedReplay = false;
 
@@ -47,6 +51,13 @@ export async function initialize(): Promise<void> {
 	state = result.state;
 	initialized = true;
 	loading = false;
+	log.info(
+		'initialized —',
+		state.properties.size,
+		'properties,',
+		result.eventsSinceSnapshot,
+		'events replayed'
+	);
 }
 
 /** Reset module state to initial values. For testing only. */
@@ -60,7 +71,9 @@ export function _reset(): void {
 export async function dispatchEvent(
 	eventData: Omit<AppEvent, 'id' | 'timestamp'>
 ): Promise<AppEvent> {
+	log.info('dispatching', eventData.type);
 	const event = await commitEvent(eventData);
 	state = applyEvent(state, event);
+	log.debug('state updated — properties:', state.properties.size);
 	return event;
 }
