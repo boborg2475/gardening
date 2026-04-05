@@ -16,6 +16,7 @@
 	import { setupTestHooks } from '../test-hooks.js';
 	import type { GridScale } from '../../types/canvas.js';
 	import { createDrawingStore } from '../../stores/drawing-store.svelte.js';
+	import { createPrecisionToolsStore } from '../../stores/precision-tools-store.svelte.js';
 	import { screenToCanvas, getHitRadius, BASE_HIT_RADIUS_PX } from '../drawing/coordinate-utils.js';
 	import { isNearFirstPoint } from '../../domain/polygon-drawing.js';
 	import { getProperties } from '../../stores/materialized-state.svelte.js';
@@ -24,6 +25,7 @@
 
 	const navigationContext = createNavigationContext();
 	const drawingStore = createDrawingStore();
+	const precisionToolsStore = createPrecisionToolsStore();
 
 	// Set default grid scale based on property unit
 	$effect(() => {
@@ -43,8 +45,6 @@
 	const stageScaleY = $derived(navigationContext.zoomLevel);
 	const stageX = $derived(navigationContext.panOffset.x);
 	const stageY = $derived(navigationContext.panOffset.y);
-	const isDraggable = $derived(!drawingStore.isActive);
-
 	const gridLines = $derived(
 		calculateGridLines({
 			canvasWidth: containerWidth,
@@ -75,6 +75,8 @@
 		drawingStore.mode === 'complete' ? drawingStore.points.flatMap((p) => [p.x, p.y]) : []
 	);
 
+	const isDraggableOrConfirming = $derived(!drawingStore.isActive && !drawingStore.isConfirming);
+
 	// Set up test hooks immediately with a proxy that reads current state
 	setupTestHooks({
 		stage: {
@@ -84,7 +86,8 @@
 		navigationContext,
 		mode: 'development',
 		drawingStore,
-		getProperties
+		getProperties,
+		precisionToolsStore
 	});
 
 	function handleDragEnd(e: unknown) {
@@ -122,6 +125,9 @@
 			)
 		) {
 			drawingStore.close();
+			if (precisionToolsStore.twoStageConfirmEnabled) {
+				drawingStore.enterConfirmation();
+			}
 			return;
 		}
 
@@ -247,7 +253,7 @@
 		scaleY={stageScaleY}
 		x={stageX}
 		y={stageY}
-		draggable={isDraggable}
+		draggable={isDraggableOrConfirming}
 		bind:node={stageNode}
 		ondragend={handleDragEnd}
 	>
