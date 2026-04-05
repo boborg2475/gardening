@@ -6,6 +6,7 @@
 	import PropertyHeader from '$lib/ui/panels/PropertyHeader.svelte';
 	import PropertyMap from '$lib/canvas/map/PropertyMap.svelte';
 	import GridScaleSelector from '$lib/ui/shared/GridScaleSelector.svelte';
+	import ControlPanel from '$lib/ui/shared/ControlPanel.svelte';
 	import type { GridScale } from '$lib/types/canvas.js';
 
 	let propertyMapRef: PropertyMap | undefined = $state(undefined);
@@ -38,36 +39,40 @@
 	<div class="flex h-screen flex-col">
 	<PropertyHeader {property} />
 	<div class="relative min-h-0 flex-1">
-		<div class="absolute top-2 right-2 z-10 flex items-center gap-2">
-			<button
-				class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary-hover"
-				onclick={handleDrawBoundary}
-			>
-				Draw Boundary
-			</button>
-			<GridScaleSelector
-				unit={property.dimensions?.unit ?? 'ft'}
-				value={propertyMapRef?.getGridScale() ?? '1ft'}
-				onchange={handleGridScaleChange}
-			/>
+		<div class="absolute top-3 right-3 z-10">
+			<ControlPanel>
+				<button
+					class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary-hover"
+					onclick={handleDrawBoundary}
+				>
+					Draw Boundary
+				</button>
+				<GridScaleSelector
+					unit={property.dimensions?.unit ?? 'ft'}
+					value={propertyMapRef?.getGridScale() ?? '1ft'}
+					onchange={handleGridScaleChange}
+				/>
+			</ControlPanel>
 		</div>
-		<div class="absolute bottom-4 left-2 z-10 flex items-center gap-2">
-			<label class="text-sm font-medium text-foreground" for="north-orientation">North Orientation</label>
-			<input
-				id="north-orientation"
-				type="number"
-				min="0"
-				max="359"
-				placeholder="0-359"
-				class="w-20 rounded-md border border-border bg-input px-2 py-1 text-sm text-foreground placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
-				bind:value={northDegrees}
-			/>
-			<button
-				class="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent-hover"
-				onclick={handleSetNorth}
-			>
-				Set North
-			</button>
+		<div class="absolute bottom-4 left-3 z-10">
+			<ControlPanel>
+				<label class="text-sm font-medium text-foreground" for="north-orientation">North Orientation</label>
+				<input
+					id="north-orientation"
+					type="number"
+					min="0"
+					max="359"
+					placeholder="0-359"
+					class="w-20 rounded-md border border-border bg-input px-2 py-1 text-sm text-foreground placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
+					bind:value={northDegrees}
+				/>
+				<button
+					class="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent-hover"
+					onclick={handleSetNorth}
+				>
+					Set North
+				</button>
+			</ControlPanel>
 		</div>
 		<PropertyMap bind:this={propertyMapRef} {property} />
 	</div>
