@@ -30,7 +30,7 @@
 </script>
 
 {#if getProperties().length === 0}
-	<main class="flex min-h-screen items-center justify-center">
+	<main class="flex min-h-screen items-center justify-center bg-background">
 		<PropertyCreationForm />
 	</main>
 {:else}
@@ -40,7 +40,7 @@
 	<div class="relative min-h-0 flex-1">
 		<div class="absolute top-2 right-2 z-10 flex items-center gap-2">
 			<button
-				class="rounded bg-green-600 px-3 py-1.5 text-sm text-white hover:bg-green-700"
+				class="rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary-hover"
 				onclick={handleDrawBoundary}
 			>
 				Draw Boundary
@@ -52,18 +52,18 @@
 			/>
 		</div>
 		<div class="absolute bottom-4 left-2 z-10 flex items-center gap-2">
-			<label class="text-sm font-medium" for="north-orientation">North Orientation</label>
+			<label class="text-sm font-medium text-foreground" for="north-orientation">North Orientation</label>
 			<input
 				id="north-orientation"
 				type="number"
 				min="0"
 				max="359"
 				placeholder="0-359"
-				class="w-20 rounded border px-2 py-1 text-sm"
+				class="w-20 rounded-md border border-border bg-input px-2 py-1 text-sm text-foreground placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
 				bind:value={northDegrees}
 			/>
 			<button
-				class="rounded bg-blue-600 px-3 py-1.5 text-sm text-white hover:bg-blue-700"
+				class="rounded-md bg-accent px-3 py-1.5 text-sm font-medium text-accent-foreground hover:bg-accent-hover"
 				onclick={handleSetNorth}
 			>
 				Set North
