@@ -11,6 +11,7 @@
 	import type { GridScale } from '$lib/types/canvas.js';
 
 	let propertyMapRef: PropertyMap | undefined = $state(undefined);
+	const currentNorth = $derived(getProperties()[0]?.northOrientation);
 	let northDegrees = $state('');
 	let isDrawing = $state(false);
 
@@ -29,7 +30,6 @@
 		const degrees = parseInt(northDegrees, 10);
 		if (isNaN(degrees) || degrees < 0 || degrees > 359) return;
 		await setNorthOrientation(dispatchEvent, properties[0].id, degrees);
-		northDegrees = '';
 	}
 </script>
 
@@ -71,7 +71,7 @@
 						type="number"
 						min="0"
 						max="359"
-						placeholder="0-359"
+						placeholder={currentNorth !== undefined ? String(currentNorth) + '°' : '0-359'}
 						class="w-20 rounded-md border border-border bg-input px-2 py-1 text-sm text-foreground placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
 						bind:value={northDegrees}
 					/>
