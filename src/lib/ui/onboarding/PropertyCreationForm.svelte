@@ -38,7 +38,10 @@
 	class="mx-auto max-w-md space-y-6 rounded-lg border border-border bg-surface p-6"
 	style="box-shadow: var(--shadow-md);"
 >
-	<h2 class="text-2xl font-bold text-foreground">Create Your Property</h2>
+	<div>
+		<h2 class="text-2xl font-bold text-foreground">Create Your Property</h2>
+		<p class="mt-1 text-sm text-muted">Set up your garden space to get started.</p>
+	</div>
 
 	<div>
 		<label for="property-name" class="mb-1 block text-sm font-medium text-foreground"
@@ -58,8 +61,8 @@
 		<p class="text-sm text-destructive">{error}</p>
 	{/if}
 
-	<fieldset class="space-y-3">
-		<legend class="text-sm font-medium text-muted-foreground">Dimensions (optional)</legend>
+	<fieldset class="space-y-3 rounded-md border border-border/60 p-4">
+		<legend class="px-1 text-sm font-medium text-muted">Dimensions (optional)</legend>
 
 		<div class="grid grid-cols-2 gap-3">
 			<div>
