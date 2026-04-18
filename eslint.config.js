@@ -7,6 +7,7 @@ import { defineConfig } from 'eslint/config';
 import globals from 'globals';
 import ts from 'typescript-eslint';
 import svelteConfig from './svelte.config.js';
+import noHardcodedColors from './eslint-rules/no-hardcoded-colors.js';
 
 const gitignorePath = path.resolve(import.meta.dirname, '.gitignore');
 
@@ -38,9 +39,9 @@ export default defineConfig(
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		files: ['src/**/*.ts', 'src/**/*.svelte'],
+		plugins: { custom: { rules: { 'no-hardcoded-colors': noHardcodedColors } } },
+		rules: { 'custom/no-hardcoded-colors': 'error' }
 	},
 	{
 		files: ['**/*.test.ts', '**/*.test.js', '**/*.spec.ts', '**/*.spec.js'],

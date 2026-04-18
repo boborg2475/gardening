@@ -97,7 +97,10 @@ test.describe('Story 1.5-1: Design System & Color Palette', () => {
 
 	test('AC#2: primary color is a muted earth tone (sage green), not bright', async ({ page }) => {
 		const primaryColor = await page.evaluate(() => {
-			return window.getComputedStyle(document.documentElement).getPropertyValue('--color-primary').trim();
+			return window
+				.getComputedStyle(document.documentElement)
+				.getPropertyValue('--color-primary')
+				.trim();
 		});
 
 		// Primary should be a hex color in the sage green range
@@ -116,7 +119,10 @@ test.describe('Story 1.5-1: Design System & Color Palette', () => {
 
 	test('AC#2: destructive color is muted brick red, not bright red', async ({ page }) => {
 		const color = await page.evaluate(() => {
-			return window.getComputedStyle(document.documentElement).getPropertyValue('--color-destructive').trim();
+			return window
+				.getComputedStyle(document.documentElement)
+				.getPropertyValue('--color-destructive')
+				.trim();
 		});
 
 		const r = parseInt(color.slice(1, 3), 16);
