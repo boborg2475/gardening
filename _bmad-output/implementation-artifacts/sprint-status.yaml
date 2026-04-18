@@ -53,23 +53,32 @@ development_status:
   1-7-property-boundary-drawing-on-grid: done
   epic-1-retrospective: optional
 
+  # Epic 1.5: UI Polish & Visual Identity
+  epic-1.5: backlog
+  1.5-1-design-system-and-color-palette: ready-for-dev
+  1.5-2-property-header-and-layout-chrome: ready-for-dev
+  1.5-3-property-creation-form-polish: ready-for-dev
+  1.5-4-canvas-controls-and-toolbar: ready-for-dev
+  1.5-5-canvas-visual-refinement: ready-for-dev
+  epic-1.5-retrospective: optional
+
   # Epic 2: Satellite Setup & Feature Detection
   epic-2: backlog
-  2-1-network-boundary-module-and-tile-provider: backlog
-  2-2-satellite-image-tracing: backlog
-  2-3-assisted-feature-detection: backlog
-  2-4-feature-detection-catalog: backlog
-  2-5-edit-property-boundaries-after-creation: backlog
+  2-1-network-boundary-module-and-tile-provider: ready-for-dev
+  2-2-satellite-image-tracing: ready-for-dev
+  2-3-assisted-feature-detection: ready-for-dev
+  2-4-feature-detection-catalog: ready-for-dev
+  2-5-edit-property-boundaries-after-creation: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Zones, Entities & Garden Population
   epic-3: backlog
-  3-1-zone-creation-and-nesting: backlog
-  3-2-structures-and-features: backlog
-  3-3-entity-creation-with-progressive-detail: backlog
-  3-4-plant-placement-single-drop: backlog
-  3-5-plant-placement-row-and-grid-tools: backlog
-  3-6-hierarchical-inheritance-and-overrides: backlog
+  3-1-zone-creation-and-nesting: ready-for-dev
+  3-2-structures-and-features: ready-for-dev
+  3-3-entity-creation-with-progressive-detail: ready-for-dev
+  3-4-plant-placement-single-drop: ready-for-dev
+  3-5-plant-placement-row-and-grid-tools: ready-for-dev
+  3-6-hierarchical-inheritance-and-overrides: ready-for-dev
   epic-3-retrospective: optional
 
   # Epic 4: Map Navigation & Visualization
