@@ -70,9 +70,7 @@
 
 	// Property bounds in canvas-space pixels
 	const propertyBounds = $derived(
-		property.dimensions
-			? getPropertyBounds(property.dimensions)
-			: undefined
+		property.dimensions ? getPropertyBounds(property.dimensions) : undefined
 	);
 
 	const gridLines = $derived(
@@ -359,7 +357,12 @@
 				/>
 			{/if}
 			{#if drawingStore.isActive && drawingLinePoints.length >= 4}
-				<Line points={drawingLinePoints} stroke={DRAWING_STROKE} strokeWidth={DRAWING_STROKE_WIDTH} listening={false} />
+				<Line
+					points={drawingLinePoints}
+					stroke={DRAWING_STROKE}
+					strokeWidth={DRAWING_STROKE_WIDTH}
+					listening={false}
+				/>
 			{/if}
 			{#if drawingStore.isActive && previewLinePoints.length === 4}
 				<Line

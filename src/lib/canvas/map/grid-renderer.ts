@@ -150,9 +150,11 @@ export function calculateGridLines(params: GridLineParams): GridLineConfig[] {
  * Compute property bounds in canvas-space pixels from dimensions.
  * Property is placed with top-left at origin (0, 0).
  */
-export function getPropertyBounds(
-	dimensions: { width: number; length: number; unit: 'ft' | 'm' }
-): CanvasBounds {
+export function getPropertyBounds(dimensions: {
+	width: number;
+	length: number;
+	unit: 'ft' | 'm';
+}): CanvasBounds {
 	const pxPerUnit = dimensions.unit === 'm' ? BASE_PIXELS_PER_METER : BASE_PIXELS_PER_FOOT;
 	return {
 		left: 0,
