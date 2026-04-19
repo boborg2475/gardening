@@ -35,7 +35,7 @@ jobs:
 
       - name: Post lint report to PR
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -89,7 +89,7 @@ jobs:
 
       - name: Post Playwright report to PR
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
@@ -190,7 +190,7 @@ jobs:
 
       - name: Post mutation report to PR
         if: always()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const fs = require('fs');
