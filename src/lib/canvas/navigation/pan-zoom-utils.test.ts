@@ -239,8 +239,8 @@ describe('clampPanOffset', () => {
 			...baseParams,
 			panOffset: { x: 5000, y: 5000 }
 		});
-		expect(result.x).toBe(800);  // maxX
-		expect(result.y).toBe(600);  // maxY = viewportHeight
+		expect(result.x).toBe(800); // maxX
+		expect(result.y).toBe(600); // maxY = viewportHeight
 	});
 
 	it('adjusts limits when zoomed in', () => {
